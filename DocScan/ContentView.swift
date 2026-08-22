@@ -10,36 +10,11 @@ import SwiftUI
 import UIKit
 import VisionKit
 
-private enum AppAppearance: String, CaseIterable, Identifiable {
-    case system = "System"
-    case light = "Light"
-    case dark = "Dark"
-
-    var id: String { rawValue }
-
-    var colorScheme: ColorScheme? {
-        switch self {
-        case .system: nil
-        case .light: .light
-        case .dark: .dark
-        }
-    }
-
-    var iconName: String {
-        switch self {
-        case .system: "circle.lefthalf.filled"
-        case .light: "sun.max"
-        case .dark: "moon"
-        }
-    }
-}
-
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \ScannedDocument.createdAt, order: .reverse) private var documents: [ScannedDocument]
 
     @AppStorage("hasPresentedInitialScanner") private var hasPresentedInitialScanner = false
-    @AppStorage("preferredAppearance") private var preferredAppearanceRawValue = AppAppearance.system.rawValue
     @State private var searchText = ""
     @State private var selectedCategory: DocumentCategory = .all
     @State private var isScannerPresented = false
@@ -48,7 +23,7 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottomTrailing) {
+            ZStack {
                 List {
                     searchControls
 
@@ -66,7 +41,8 @@ struct ContentView: View {
                             }
                             .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                             .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
+                            .listRowSeparator(.visible)
+                            .listRowSeparatorTint(Color(.separator).opacity(0.35))
                             .swipeActions {
                                 Button(role: .destructive) {
                                     delete(document)
@@ -79,21 +55,12 @@ struct ContentView: View {
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
-                .background(Color(.systemGroupedBackground))
-                .safeAreaInset(edge: .bottom) {
-                    if !documents.isEmpty {
-                        Color.clear.frame(height: 78)
-                    }
-                }
-
-                if !documents.isEmpty {
-                    floatingScanButton
-                }
+                .background(Color.white)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color.white)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Color(.systemBackground), for: .navigationBar)
+            .toolbarBackground(Color.white, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .principal) {
@@ -101,7 +68,13 @@ struct ContentView: View {
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
-                    appearanceMenu
+                    if !documents.isEmpty {
+                        Button {
+                            presentScanner()
+                        } label: {
+                            Label("Scan", systemImage: "camera.viewfinder")
+                        }
+                    }
                 }
             }
             .overlay {
@@ -132,7 +105,7 @@ struct ContentView: View {
                 presentInitialScannerIfNeeded()
             }
         }
-        .preferredColorScheme(selectedAppearance.colorScheme)
+        .preferredColorScheme(.light)
     }
 
     private var filteredDocuments: [ScannedDocument] {
@@ -144,10 +117,6 @@ struct ContentView: View {
 
     private var hasActiveFilter: Bool {
         !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || selectedCategory != .all
-    }
-
-    private var selectedAppearance: AppAppearance {
-        AppAppearance(rawValue: preferredAppearanceRawValue) ?? .system
     }
 
     private var searchControls: some View {
@@ -213,24 +182,24 @@ struct ContentView: View {
         }
         .padding(.horizontal, 12)
         .frame(minHeight: 48)
-        .background(Color(.secondarySystemGroupedBackground))
+        .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(.quaternary, lineWidth: 1)
+                .stroke(Color(.separator).opacity(0.35), lineWidth: 1)
         }
     }
 
     private var filterSummary: some View {
         HStack(spacing: 10) {
-            categoryFilter
-
             Text(resultSummary)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
 
             Spacer(minLength: 8)
+
+            categoryFilter
 
             if hasActiveFilter {
                 Button("Clear") {
@@ -258,9 +227,9 @@ struct ContentView: View {
                     .font(.caption.weight(.semibold))
             }
             .font(.subheadline.weight(.medium))
+            .foregroundStyle(.primary)
         }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
+        .buttonStyle(.plain)
     }
 
     private var resultSummary: String {
@@ -276,10 +245,10 @@ struct ContentView: View {
 
     private var emptyState: some View {
         VStack(spacing: 14) {
-            Text(hasActiveFilter ? "No Matches" : "No Documents")
+            Text(hasActiveFilter ? "No Matches" : "No Documents Yet")
                 .font(.title3.weight(.semibold))
 
-            Text(hasActiveFilter ? "Try a different search or category." : "Your archive is empty.")
+            Text(hasActiveFilter ? "Try a different search or category." : "Scan a document to start your archive.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -297,40 +266,6 @@ struct ContentView: View {
             }
         }
         .frame(maxWidth: .infinity, minHeight: 320)
-    }
-
-    private var floatingScanButton: some View {
-        Button {
-            presentScanner()
-        } label: {
-            Label("Scan", systemImage: "camera.viewfinder")
-                .font(.headline.weight(.semibold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 18)
-                .frame(height: 52)
-                .background(Color.accentColor, in: Capsule())
-        }
-        .buttonStyle(.plain)
-        .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
-        .padding(.trailing, 18)
-        .padding(.bottom, 14)
-    }
-
-    private var appearanceMenu: some View {
-        Menu {
-            ForEach(AppAppearance.allCases) { appearance in
-                Button {
-                    preferredAppearanceRawValue = appearance.rawValue
-                } label: {
-                    Label(appearance.rawValue, systemImage: selectedAppearance == appearance ? "checkmark" : appearance.iconName)
-                }
-            }
-        } label: {
-            Image(systemName: selectedAppearance.iconName)
-                .font(.body.weight(.semibold))
-                .frame(width: 34, height: 34)
-        }
-        .accessibilityLabel("Appearance")
     }
 
     private var processingOverlay: some View {
@@ -397,16 +332,19 @@ struct ContentView: View {
                 .joined(separator: "\n\n")
 
             let createdAt = Date()
-            let category = DocumentCategorizer.inferCategory(from: fullText)
-            let title = DocumentCategorizer.makeTitle(from: fullText, createdAt: createdAt)
+            let metadata = DocumentMetadataService.ruleBasedMetadata(for: fullText, createdAt: createdAt)
             let pages = processedPages.map {
                 ScannedPage(index: $0.index, imageData: $0.imageData, recognizedText: $0.recognizedText, createdAt: createdAt)
             }
 
             let document = ScannedDocument(
-                title: title,
-                category: category.rawValue,
+                title: metadata.title,
+                category: metadata.category.rawValue,
                 fullText: fullText,
+                documentSummary: metadata.summary,
+                keywordsText: metadata.keywords.joined(separator: "\n"),
+                metadataSource: metadata.source.rawValue,
+                metadataUpdatedAt: createdAt,
                 createdAt: createdAt,
                 updatedAt: createdAt,
                 pageCount: pages.count,
@@ -419,9 +357,27 @@ struct ContentView: View {
 
             modelContext.insert(document)
             try modelContext.save()
+            enrichDocument(document, fullText: fullText, createdAt: createdAt)
         } catch {
             modelContext.rollback()
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func enrichDocument(_ document: ScannedDocument, fullText: String, createdAt: Date) {
+        Task { @MainActor in
+            let metadata = await DocumentMetadataService.enrichedMetadata(for: fullText, createdAt: createdAt)
+
+            guard metadata.source == .appleIntelligence else {
+                return
+            }
+
+            do {
+                document.applyMetadata(metadata)
+                try modelContext.save()
+            } catch {
+                modelContext.rollback()
+            }
         }
     }
 

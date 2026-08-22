@@ -6,12 +6,21 @@
 import Foundation
 import SwiftData
 
+enum DocumentMetadataSource: String, Codable, Sendable {
+    case rules
+    case appleIntelligence
+}
+
 @Model
 final class ScannedDocument {
     var id: UUID = UUID()
     @Attribute(.spotlight, .allowsCloudEncryption) var title: String = ""
     @Attribute(.spotlight, .allowsCloudEncryption) var category: String = DocumentCategory.general.rawValue
     @Attribute(.spotlight, .allowsCloudEncryption) var fullText: String = ""
+    @Attribute(.spotlight, .allowsCloudEncryption) var documentSummary: String = ""
+    @Attribute(.spotlight, .allowsCloudEncryption) var keywordsText: String = ""
+    @Attribute(.allowsCloudEncryption) var metadataSource: String = DocumentMetadataSource.rules.rawValue
+    @Attribute(.allowsCloudEncryption) var metadataUpdatedAt: Date?
     var createdAt: Date = Date()
     var updatedAt: Date = Date()
     var pageCount: Int = 0
@@ -24,6 +33,10 @@ final class ScannedDocument {
         title: String,
         category: String,
         fullText: String,
+        documentSummary: String = "",
+        keywordsText: String = "",
+        metadataSource: String = DocumentMetadataSource.rules.rawValue,
+        metadataUpdatedAt: Date? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         pageCount: Int = 0,
@@ -33,6 +46,10 @@ final class ScannedDocument {
         self.title = title
         self.category = category
         self.fullText = fullText
+        self.documentSummary = documentSummary
+        self.keywordsText = keywordsText
+        self.metadataSource = metadataSource
+        self.metadataUpdatedAt = metadataUpdatedAt
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.pageCount = pageCount
@@ -55,15 +72,46 @@ final class ScannedDocument {
     }
 
     var searchableText: String {
-        ([title, category, recognizedText] + sortedPages.map(\.recognizedText))
+        ([title, category, documentSummary, keywordsText, recognizedText] + sortedPages.map(\.recognizedText))
             .joined(separator: " ")
     }
 
-    var previewText: String {
-        recognizedText
+    var cleanedSummary: String {
+        documentSummary
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
+    }
+
+    var keywords: [String] {
+        keywordsText
             .split(whereSeparator: \.isNewline)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .first { !$0.isEmpty } ?? "No text recognized"
+            .filter { !$0.isEmpty }
+    }
+
+    var cleanedRecognizedText: String {
+        recognizedText
+            .split(whereSeparator: \.isNewline)
+            .map { line in
+                line
+                    .split(whereSeparator: \.isWhitespace)
+                    .joined(separator: " ")
+            }
+            .filter { !$0.isEmpty }
+            .joined(separator: "\n")
+    }
+
+    var snippetText: String {
+        [cleanedSummary, cleanedRecognizedText, keywordsText]
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            .joined(separator: "\n")
+    }
+
+    var previewText: String {
+        cleanedRecognizedText
+            .split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .first { !$0.isEmpty } ?? (cleanedSummary.isEmpty ? "No text recognized" : cleanedSummary)
     }
 }
 

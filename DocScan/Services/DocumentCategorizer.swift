@@ -5,7 +5,7 @@
 
 import Foundation
 
-enum DocumentCategory: String, CaseIterable, Identifiable {
+enum DocumentCategory: String, CaseIterable, Identifiable, Sendable {
     case all = "All"
     case receipts = "Receipts"
     case invoices = "Invoices"
