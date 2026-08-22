@@ -22,24 +22,6 @@ enum DocumentCategory: String, CaseIterable, Identifiable, Sendable {
 
     var id: String { rawValue }
 
-    var iconName: String {
-        switch self {
-        case .all: "tray.full"
-        case .receipts: "receipt"
-        case .invoices: "doc.text"
-        case .tax: "percent"
-        case .banking: "building.columns"
-        case .medical: "cross.case"
-        case .insurance: "checkmark.shield"
-        case .legal: "scale.3d"
-        case .travel: "airplane"
-        case .utilities: "bolt"
-        case .education: "graduationcap"
-        case .identity: "person.text.rectangle"
-        case .general: "folder"
-        }
-    }
-
     static var filters: [DocumentCategory] {
         [.all] + allCases.filter { $0 != .all }
     }

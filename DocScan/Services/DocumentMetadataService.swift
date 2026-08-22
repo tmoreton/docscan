@@ -11,7 +11,6 @@ struct DocumentMetadata: Sendable {
     let category: DocumentCategory
     let summary: String
     let keywords: [String]
-    let source: DocumentMetadataSource
 }
 
 @Generable(description: "Searchable document metadata extracted from OCR text")
@@ -54,23 +53,21 @@ enum DocumentMetadataService {
             title: title,
             category: category,
             summary: "",
-            keywords: [],
-            source: .rules
+            keywords: []
         )
     }
 
-    static func enrichedMetadata(for text: String, createdAt: Date) async -> DocumentMetadata {
-        let fallback = ruleBasedMetadata(for: text, createdAt: createdAt)
+    static func enrichedMetadata(for text: String, fallback: DocumentMetadata) async -> DocumentMetadata? {
         let context = contextText(from: text)
 
         guard !context.isEmpty else {
-            return fallback
+            return nil
         }
 
         let model = SystemLanguageModel(useCase: .contentTagging)
         guard case .available = model.availability,
               model.supportsLocale() else {
-            return fallback
+            return nil
         }
 
         do {
@@ -83,7 +80,7 @@ enum DocumentMetadataService {
 
             return cleanedMetadata(from: response.content, fallback: fallback)
         } catch {
-            return fallback
+            return nil
         }
     }
 
@@ -117,8 +114,7 @@ enum DocumentMetadataService {
             title: title.isEmpty ? fallback.title : title,
             category: category,
             summary: summary,
-            keywords: keywords,
-            source: .appleIntelligence
+            keywords: keywords
         )
     }
 
@@ -181,8 +177,6 @@ extension ScannedDocument {
         category = metadata.category.rawValue
         documentSummary = metadata.summary
         keywordsText = metadata.keywords.joined(separator: "\n")
-        metadataSource = metadata.source.rawValue
-        metadataUpdatedAt = updatedAt
         self.updatedAt = updatedAt
     }
 }

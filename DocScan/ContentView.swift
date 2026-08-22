@@ -21,42 +21,61 @@ struct ContentView: View {
     @State private var isProcessingScan = false
     @State private var errorMessage: String?
 
+    private var filteredDocuments: [ScannedDocument] {
+        documents.filter { document in
+            let matchesCategory = selectedCategory == .all || document.category == selectedCategory.rawValue
+            return matchesCategory && DocumentSearch.matches(query: searchText, document: document)
+        }
+    }
+
+    private var hasActiveFilter: Bool {
+        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || selectedCategory != .all
+    }
+
     var body: some View {
         NavigationStack {
-            ZStack {
-                List {
-                    searchControls
+            List {
+                DocumentArchiveControls(
+                    searchText: $searchText,
+                    selectedCategory: $selectedCategory,
+                    documentCount: documents.count,
+                    filteredCount: filteredDocuments.count,
+                    hasActiveFilter: hasActiveFilter,
+                    onScan: presentScanner,
+                    onClearFilters: clearFilters
+                )
 
-                    if filteredDocuments.isEmpty {
-                        emptyState
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                    } else {
-                        ForEach(filteredDocuments) { document in
-                            NavigationLink {
-                                DocumentDetailView(document: document)
+                if filteredDocuments.isEmpty {
+                    DocumentArchiveEmptyState(
+                        hasActiveFilter: hasActiveFilter,
+                        onClearFilters: clearFilters
+                    )
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                } else {
+                    ForEach(filteredDocuments) { document in
+                        NavigationLink {
+                            DocumentDetailView(document: document)
+                        } label: {
+                            DocumentRow(document: document, searchText: searchText)
+                        }
+                        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.visible)
+                        .listRowSeparatorTint(Color(.separator).opacity(0.35))
+                        .swipeActions {
+                            Button(role: .destructive) {
+                                delete(document)
                             } label: {
-                                DocumentRow(document: document, searchText: searchText)
-                            }
-                            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.visible)
-                            .listRowSeparatorTint(Color(.separator).opacity(0.35))
-                            .swipeActions {
-                                Button(role: .destructive) {
-                                    delete(document)
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
+                                Label("Delete", systemImage: "trash")
                             }
                         }
                     }
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
-                .background(Color.white)
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
             .background(Color.white)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
@@ -69,9 +88,7 @@ struct ContentView: View {
 
                 ToolbarItem(placement: .topBarTrailing) {
                     if !documents.isEmpty {
-                        Button {
-                            presentScanner()
-                        } label: {
+                        Button(action: presentScanner) {
                             Label("Scan", systemImage: "camera.viewfinder")
                         }
                     }
@@ -79,20 +96,14 @@ struct ContentView: View {
             }
             .overlay {
                 if isProcessingScan {
-                    processingOverlay
+                    DocumentProcessingOverlay()
                 }
             }
             .fullScreenCover(isPresented: $isScannerPresented) {
                 DocumentScannerView(
-                    onScan: { images in
-                        Task {
-                            await saveScan(images)
-                        }
-                    },
+                    onScan: handleScan,
                     onCancel: {},
-                    onError: { error in
-                        errorMessage = error.localizedDescription
-                    }
+                    onError: handleScanError
                 )
                 .ignoresSafeArea()
             }
@@ -106,182 +117,6 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(.light)
-    }
-
-    private var filteredDocuments: [ScannedDocument] {
-        documents.filter { document in
-            let matchesCategory = selectedCategory == .all || document.category == selectedCategory.rawValue
-            return matchesCategory && DocumentSearch.matches(query: searchText, document: document)
-        }
-    }
-
-    private var hasActiveFilter: Bool {
-        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || selectedCategory != .all
-    }
-
-    private var searchControls: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if documents.isEmpty && !hasActiveFilter {
-                primaryScanButton
-            }
-
-            searchField
-
-            if !documents.isEmpty {
-                filterSummary
-            }
-        }
-        .padding(.top, 12)
-        .padding(.bottom, 8)
-        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-        .listRowBackground(Color.clear)
-        .listRowSeparator(.hidden)
-    }
-
-    private var primaryScanButton: some View {
-        Button {
-            presentScanner()
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "camera.viewfinder")
-                    .font(.title3.weight(.semibold))
-
-                Text("Scan Document")
-                    .font(.headline.weight(.semibold))
-
-                Spacer(minLength: 8)
-            }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 16)
-            .frame(maxWidth: .infinity, minHeight: 62)
-            .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var searchField: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-
-            TextField("Search documents", text: $searchText)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .submitLabel(.search)
-
-            if !searchText.isEmpty {
-                Button {
-                    searchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.tertiary)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Clear search")
-            }
-        }
-        .padding(.horizontal, 12)
-        .frame(minHeight: 48)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(Color(.separator).opacity(0.35), lineWidth: 1)
-        }
-    }
-
-    private var filterSummary: some View {
-        HStack(spacing: 10) {
-            Text(resultSummary)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-
-            Spacer(minLength: 8)
-
-            categoryFilter
-
-            if hasActiveFilter {
-                Button("Clear") {
-                    clearFilters()
-                }
-                .font(.footnote.weight(.semibold))
-                .buttonStyle(.plain)
-            }
-        }
-    }
-
-    private var categoryFilter: some View {
-        Menu {
-            ForEach(DocumentCategory.filters) { category in
-                Button {
-                    selectedCategory = category
-                } label: {
-                    Text(category.rawValue)
-                }
-            }
-        } label: {
-            HStack(spacing: 6) {
-                Text(selectedCategory.rawValue)
-                Image(systemName: "chevron.down")
-                    .font(.caption.weight(.semibold))
-            }
-            .font(.subheadline.weight(.medium))
-            .foregroundStyle(.primary)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var resultSummary: String {
-        let totalCount = documents.count
-        let filteredCount = filteredDocuments.count
-
-        if hasActiveFilter {
-            return "\(filteredCount) of \(totalCount)"
-        }
-
-        return "\(totalCount) document\(totalCount == 1 ? "" : "s")"
-    }
-
-    private var emptyState: some View {
-        VStack(spacing: 14) {
-            Text(hasActiveFilter ? "No Matches" : "No Documents Yet")
-                .font(.title3.weight(.semibold))
-
-            Text(hasActiveFilter ? "Try a different search or category." : "Scan a document to start your archive.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 280)
-
-            if hasActiveFilter {
-                Button {
-                    clearFilters()
-                } label: {
-                    Text("Clear Filters")
-                        .frame(minWidth: 160)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-            }
-        }
-        .frame(maxWidth: .infinity, minHeight: 320)
-    }
-
-    private var processingOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.2)
-                .ignoresSafeArea()
-
-            VStack(spacing: 12) {
-                ProgressView()
-                Text("Saving scan")
-                    .font(.headline)
-            }
-            .padding(24)
-            .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        }
     }
 
     private var errorAlertBinding: Binding<Bool> {
@@ -298,6 +133,16 @@ struct ContentView: View {
     private func clearFilters() {
         searchText = ""
         selectedCategory = .all
+    }
+
+    private func handleScan(_ images: [UIImage]) {
+        Task {
+            await saveScan(images)
+        }
+    }
+
+    private func handleScanError(_ error: Error) {
+        errorMessage = error.localizedDescription
     }
 
     private func presentScanner() {
@@ -343,8 +188,6 @@ struct ContentView: View {
                 fullText: fullText,
                 documentSummary: metadata.summary,
                 keywordsText: metadata.keywords.joined(separator: "\n"),
-                metadataSource: metadata.source.rawValue,
-                metadataUpdatedAt: createdAt,
                 createdAt: createdAt,
                 updatedAt: createdAt,
                 pageCount: pages.count,
@@ -357,18 +200,16 @@ struct ContentView: View {
 
             modelContext.insert(document)
             try modelContext.save()
-            enrichDocument(document, fullText: fullText, createdAt: createdAt)
+            enrichDocument(document, fullText: fullText, fallback: metadata)
         } catch {
             modelContext.rollback()
             errorMessage = error.localizedDescription
         }
     }
 
-    private func enrichDocument(_ document: ScannedDocument, fullText: String, createdAt: Date) {
+    private func enrichDocument(_ document: ScannedDocument, fullText: String, fallback: DocumentMetadata) {
         Task { @MainActor in
-            let metadata = await DocumentMetadataService.enrichedMetadata(for: fullText, createdAt: createdAt)
-
-            guard metadata.source == .appleIntelligence else {
+            guard let metadata = await DocumentMetadataService.enrichedMetadata(for: fullText, fallback: fallback) else {
                 return
             }
 
@@ -395,19 +236,4 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .modelContainer(for: [ScannedDocument.self, ScannedPage.self], inMemory: true)
-}
-
-private struct AppHeaderMark: View {
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 9, style: .continuous)
-                .fill(Color.accentColor)
-
-            Image(systemName: "doc.viewfinder")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.white)
-        }
-        .frame(width: 32, height: 32)
-        .accessibilityLabel("DocScan")
-    }
 }
