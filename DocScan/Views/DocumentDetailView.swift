@@ -5,17 +5,20 @@
 
 import SwiftData
 import SwiftUI
+import UIKit
 
 struct DocumentDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     let document: ScannedDocument
+    @State private var isDeleteConfirmationPresented = false
+    @State private var errorMessage: String?
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                pageImages
                 metadata
+                pageImages
                 recognizedText
             }
             .padding()
@@ -24,14 +27,45 @@ struct DocumentDetailView: View {
         .navigationTitle(document.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                if !document.recognizedText.isEmpty {
+                    Button {
+                        UIPasteboard.general.string = document.recognizedText
+                    } label: {
+                        Label("Copy Text", systemImage: "doc.on.doc")
+                    }
+                }
+
                 Button(role: .destructive) {
-                    deleteDocument()
+                    isDeleteConfirmationPresented = true
                 } label: {
                     Label("Delete", systemImage: "trash")
                 }
             }
         }
+        .confirmationDialog("Delete this document?", isPresented: $isDeleteConfirmationPresented, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                deleteDocument()
+            }
+
+            Button("Cancel", role: .cancel) {}
+        }
+        .alert("DocScan", isPresented: errorAlertBinding) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "")
+        }
+    }
+
+    private var errorAlertBinding: Binding<Bool> {
+        Binding(
+            get: { errorMessage != nil },
+            set: { isPresented in
+                if !isPresented {
+                    errorMessage = nil
+                }
+            }
+        )
     }
 
     private var pageImages: some View {
@@ -54,12 +88,16 @@ struct DocumentDetailView: View {
 
     private var metadata: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label(document.category, systemImage: DocumentCategory(rawValue: document.category)?.iconName ?? "folder")
-                .font(.subheadline.weight(.medium))
+            Text(document.category)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.accentColor)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Color.accentColor.opacity(0.12), in: Capsule())
 
             HStack(spacing: 12) {
-                Label(document.createdAt.formatted(date: .abbreviated, time: .shortened), systemImage: "calendar")
-                Label("\(document.pageCount) page\(document.pageCount == 1 ? "" : "s")", systemImage: "doc.on.doc")
+                Text(document.createdAt.formatted(date: .abbreviated, time: .shortened))
+                Text("\(document.pageCount) page\(document.pageCount == 1 ? "" : "s")")
             }
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -75,7 +113,7 @@ struct DocumentDetailView: View {
             Text("Recognized Text")
                 .font(.headline)
 
-            Text(document.fullText.isEmpty ? "No text recognized." : document.fullText)
+            Text(document.recognizedText.isEmpty ? "No text recognized." : document.recognizedText)
                 .font(.body.monospaced())
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -86,8 +124,13 @@ struct DocumentDetailView: View {
     }
 
     private func deleteDocument() {
-        modelContext.delete(document)
-        try? modelContext.save()
-        dismiss()
+        do {
+            modelContext.delete(document)
+            try modelContext.save()
+            dismiss()
+        } catch {
+            modelContext.rollback()
+            errorMessage = error.localizedDescription
+        }
     }
 }

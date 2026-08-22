@@ -7,6 +7,7 @@ import SwiftUI
 
 struct DocumentRow: View {
     let document: ScannedDocument
+    let searchText: String
 
     var body: some View {
         HStack(spacing: 12) {
@@ -20,13 +21,16 @@ struct DocumentRow: View {
 
                     Spacer(minLength: 8)
 
-                    Label(document.category, systemImage: categoryIcon)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .labelStyle(.iconOnly)
+                    Text(document.category)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(Color.accentColor)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.accentColor.opacity(0.12), in: Capsule())
+                        .lineLimit(1)
                 }
 
-                Text(document.previewText)
+                Text(snippet)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
@@ -39,7 +43,12 @@ struct DocumentRow: View {
                 .foregroundStyle(.tertiary)
             }
         }
-        .padding(.vertical, 6)
+        .padding(12)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(.quaternary, lineWidth: 1)
+        }
     }
 
     private var thumbnail: some View {
@@ -63,7 +72,11 @@ struct DocumentRow: View {
         .frame(width: 58, height: 74)
     }
 
-    private var categoryIcon: String {
-        DocumentCategory(rawValue: document.category)?.iconName ?? DocumentCategory.general.iconName
+    private var snippet: String {
+        DocumentSearch.snippet(
+            for: document.recognizedText,
+            query: searchText,
+            fallback: document.previewText
+        )
     }
 }

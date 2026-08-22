@@ -43,12 +43,31 @@ final class ScannedDocument {
         (pages ?? []).sorted { $0.index < $1.index }
     }
 
+    var recognizedText: String {
+        if !fullText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return fullText
+        }
+
+        return sortedPages
+            .map(\.recognizedText)
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            .joined(separator: "\n\n")
+    }
+
+    var searchableText: String {
+        ([title, category, recognizedText] + sortedPages.map(\.recognizedText))
+            .joined(separator: " ")
+    }
+
     var previewText: String {
-        fullText
+        recognizedText
             .split(whereSeparator: \.isNewline)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .first { !$0.isEmpty } ?? "No text recognized"
     }
+}
+
+extension ScannedDocument: SearchableDocument {
 }
 
 @Model
