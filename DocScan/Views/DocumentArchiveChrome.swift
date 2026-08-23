@@ -67,10 +67,18 @@ struct DocumentArchiveEmptyState: View {
             if hasActiveFilter {
                 Button(action: onClearFilters) {
                     Text("Clear Filters")
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(DocScanStyle.ink)
                         .frame(minWidth: 160)
+                        .frame(height: 48)
+                        .background(DocScanStyle.surface, in: Capsule())
+                        .overlay {
+                            Capsule()
+                                .stroke(DocScanStyle.border, lineWidth: 1)
+                        }
+                        .shadow(color: DocScanStyle.shadow.opacity(0.65), radius: 14, x: 0, y: 8)
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
+                .buttonStyle(.plain)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 320)
@@ -105,7 +113,11 @@ struct AppHeaderMark: View {
                 .foregroundStyle(DocScanStyle.ink)
                 .padding(.horizontal, 22)
                 .frame(height: 44)
-                .background(DocScanStyle.selectedSurface, in: Capsule())
+                .background(DocScanStyle.surface, in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(DocScanStyle.border, lineWidth: 1)
+                }
 
             Button(action: { onScan?() }) {
                 Text("Scan")
@@ -141,11 +153,15 @@ private struct PrimaryScanButton: View {
 
                 Spacer(minLength: 8)
             }
-            .foregroundStyle(.white)
             .padding(.horizontal, 16)
             .frame(maxWidth: .infinity, minHeight: 62)
-            .background(DocScanStyle.blue, in: Capsule())
-            .shadow(color: DocScanStyle.blue.opacity(0.20), radius: 16, x: 0, y: 8)
+            .foregroundStyle(DocScanStyle.ink)
+            .background(DocScanStyle.surface, in: Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(DocScanStyle.border, lineWidth: 1)
+            }
+            .shadow(color: DocScanStyle.shadow.opacity(0.80), radius: 16, x: 0, y: 8)
         }
         .buttonStyle(.plain)
     }
@@ -236,6 +252,10 @@ private struct CategoryFilterMenu: View {
             .padding(.horizontal, 12)
             .frame(height: 34)
             .background(DocScanStyle.surface, in: Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(DocScanStyle.border, lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
     }

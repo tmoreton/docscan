@@ -27,7 +27,6 @@ struct DocumentDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 metadata
-                storage
                 pageImages
                 recognizedText
             }
@@ -43,9 +42,8 @@ struct DocumentDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 DetailActionPill(
-                    canCopy: !displayRecognizedText.isEmpty,
-                    hasCopiedText: hasCopiedText,
-                    copyAction: copyRecognizedText,
+                    isOpeningFiles: isExportingFiles,
+                    openFilesAction: openFiles,
                     deleteAction: { isDeleteConfirmationPresented = true }
                 )
             }
@@ -95,18 +93,6 @@ struct DocumentDetailView: View {
                 if !isPresented {
                     errorMessage = nil
                 }
-            }
-        )
-    }
-
-    private var storage: some View {
-        DocumentStorageCard(
-            locations: storageLocations,
-            exportedAt: document.filesExportedAt,
-            isExporting: isExportingFiles,
-            exportAction: exportFiles,
-            browseAction: { location in
-                storageBrowserLocation = location
             }
         )
     }
@@ -165,9 +151,29 @@ struct DocumentDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             Divider()
 
-            Text("Recognized Text")
-                .font(.headline)
-                .foregroundStyle(DocScanStyle.ink)
+            HStack(spacing: 12) {
+                Text("Recognized Text")
+                    .font(.headline)
+                    .foregroundStyle(DocScanStyle.ink)
+
+                Spacer(minLength: 8)
+
+                Button(action: copyRecognizedText) {
+                    Image(systemName: hasCopiedText ? "checkmark" : "doc.on.doc")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(displayRecognizedText.isEmpty ? DocScanStyle.secondaryInk.opacity(0.45) : DocScanStyle.ink)
+                        .frame(width: 42, height: 36)
+                        .background(DocScanStyle.surface, in: Capsule())
+                        .overlay {
+                            Capsule()
+                                .stroke(DocScanStyle.border, lineWidth: 1)
+                        }
+                        .shadow(color: DocScanStyle.shadow.opacity(0.45), radius: 10, x: 0, y: 5)
+                }
+                .buttonStyle(.plain)
+                .disabled(displayRecognizedText.isEmpty)
+                .accessibilityLabel(hasCopiedText ? "Recognized text copied" : "Copy recognized text")
+            }
 
             Text(displayRecognizedText.isEmpty ? "No text recognized." : displayRecognizedText)
                 .font(.body)
@@ -225,6 +231,30 @@ struct DocumentDetailView: View {
         }
     }
 
+    private func openFiles() {
+        guard !isExportingFiles else {
+            return
+        }
+
+        if storageLocations == nil {
+            refreshStorageLocations()
+        }
+
+        if document.filesExportedAt == nil {
+            exportFiles()
+            guard document.filesExportedAt != nil else {
+                return
+            }
+        }
+
+        guard let location = storageLocations?.iCloud ?? storageLocations?.local else {
+            errorMessage = "DocScan could not find the exported Files folder."
+            return
+        }
+
+        storageBrowserLocation = location
+    }
+
     private func copyRecognizedText() {
         guard !displayRecognizedText.isEmpty else {
             return
@@ -261,161 +291,22 @@ struct DocumentDetailView: View {
     }
 }
 
-private struct DocumentStorageCard: View {
-    let locations: DocumentFileLocations?
-    let exportedAt: Date?
-    let isExporting: Bool
-    let exportAction: () -> Void
-    let browseAction: (DocumentFileLocation) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                Image(systemName: "folder")
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(DocScanStyle.ink)
-
-                Text("Files Storage")
-                    .font(.headline)
-                    .foregroundStyle(DocScanStyle.ink)
-
-                Spacer(minLength: 8)
-
-                Button(action: exportAction) {
-                    if isExporting {
-                        ProgressView()
-                            .frame(width: 20, height: 20)
-                    } else {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 17, weight: .semibold))
-                    }
-                }
-                .buttonStyle(.plain)
-                .disabled(isExporting)
-                .accessibilityLabel("Export files now")
-            }
-
-            Text("DocScan keeps an internal SwiftData record synced with private iCloud. These are the user-visible scan and OCR text copies.")
-                .font(.footnote)
-                .foregroundStyle(DocScanStyle.secondaryInk)
-                .fixedSize(horizontal: false, vertical: true)
-
-            if let exportedAt {
-                Label("Last exported \(exportedAt.formatted(date: .abbreviated, time: .shortened))", systemImage: "checkmark.circle")
-                    .font(.caption)
-                    .foregroundStyle(DocScanStyle.secondaryInk)
-            } else if isExporting {
-                Label("Preparing Files copies", systemImage: "hourglass")
-                    .font(.caption)
-                    .foregroundStyle(DocScanStyle.secondaryInk)
-            }
-
-            if let locations {
-                StorageLocationRow(location: locations.local, browseAction: browseAction)
-
-                if let iCloud = locations.iCloud {
-                    StorageLocationRow(location: iCloud, browseAction: browseAction)
-                } else {
-                    StorageUnavailableRow()
-                }
-            }
-        }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(DocScanStyle.surface)
-                .shadow(color: DocScanStyle.shadow.opacity(0.55), radius: 12, x: 0, y: 6)
-        )
-    }
-}
-
-private struct StorageLocationRow: View {
-    let location: DocumentFileLocation
-    let browseAction: (DocumentFileLocation) -> Void
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: location.systemImage)
-                .font(.body.weight(.semibold))
-                .foregroundStyle(DocScanStyle.ink)
-                .frame(width: 24, height: 24)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(location.title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(DocScanStyle.ink)
-
-                Text(location.displayPath)
-                    .font(.caption)
-                    .foregroundStyle(DocScanStyle.secondaryInk)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                Text(location.persistenceNote)
-                    .font(.caption2)
-                    .foregroundStyle(DocScanStyle.secondaryInk)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            Spacer(minLength: 8)
-
-            Button {
-                browseAction(location)
-            } label: {
-                Image(systemName: "folder")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(DocScanStyle.ink)
-                    .frame(width: 38, height: 34)
-                    .background(DocScanStyle.selectedSurface, in: Capsule())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Browse \(location.title) files")
-        }
-    }
-}
-
-private struct StorageUnavailableRow: View {
-    var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: "icloud.slash")
-                .font(.body.weight(.semibold))
-                .foregroundStyle(DocScanStyle.secondaryInk)
-                .frame(width: 24, height: 24)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text("iCloud Drive")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(DocScanStyle.ink)
-
-                Text("Unavailable on this device right now.")
-                    .font(.caption)
-                    .foregroundStyle(DocScanStyle.secondaryInk)
-
-                Text("Sign into iCloud and enable iCloud Drive to keep a Files copy after the app is deleted.")
-                    .font(.caption2)
-                    .foregroundStyle(DocScanStyle.secondaryInk)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-    }
-}
-
 private struct DetailActionPill: View {
-    let canCopy: Bool
-    let hasCopiedText: Bool
-    let copyAction: () -> Void
+    let isOpeningFiles: Bool
+    let openFilesAction: () -> Void
     let deleteAction: () -> Void
 
     var body: some View {
         HStack(spacing: 0) {
-            Button(action: copyAction) {
-                Image(systemName: hasCopiedText ? "checkmark" : "doc.on.doc")
+            Button(action: openFilesAction) {
+                Image(systemName: "folder")
                     .font(.system(size: 21, weight: .semibold))
-                    .foregroundStyle(canCopy ? DocScanStyle.ink : DocScanStyle.secondaryInk.opacity(0.45))
+                    .foregroundStyle(isOpeningFiles ? DocScanStyle.secondaryInk.opacity(0.45) : DocScanStyle.ink)
                     .frame(width: 50, height: 46)
             }
             .buttonStyle(.plain)
-            .disabled(!canCopy)
-            .accessibilityLabel(hasCopiedText ? "Recognized text copied" : "Copy recognized text")
+            .disabled(isOpeningFiles)
+            .accessibilityLabel("Open exported files")
 
             Rectangle()
                 .fill(DocScanStyle.border)
