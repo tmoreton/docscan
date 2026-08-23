@@ -6,14 +6,14 @@
 import SwiftUI
 
 enum DocScanStyle {
-    static let background = Color.white
-    static let surface = Color.white
-    static let selectedSurface = Color(red: 0.925, green: 0.925, blue: 0.918)
+    static let background = Color(.sRGB, red: 1, green: 1, blue: 1, opacity: 1)
+    static let surface = Color(.sRGB, red: 1, green: 1, blue: 1, opacity: 1)
+    static let selectedSurface = Color(.sRGB, red: 1, green: 1, blue: 1, opacity: 1)
     static let ink = Color(red: 0.055, green: 0.055, blue: 0.055)
     static let secondaryInk = Color(red: 0.44, green: 0.44, blue: 0.44)
     static let blue = Color(red: 0.03, green: 0.54, blue: 0.96)
     static let border = Color.black.opacity(0.06)
-    static let shadow = Color.black.opacity(0.10)
+    static let shadow = Color.black.opacity(0.04)
 }
 
 struct FloatingIconButton: View {
