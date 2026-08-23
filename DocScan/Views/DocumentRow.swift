@@ -38,14 +38,18 @@ struct DocumentRow: View {
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(DocScanStyle.surface)
-                .shadow(color: DocScanStyle.shadow.opacity(0.55), radius: 12, x: 0, y: 6)
+                .shadow(color: DocScanStyle.shadow.opacity(0.18), radius: 8, x: 0, y: 4)
         )
+        .overlay {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(DocScanStyle.border, lineWidth: 1)
+        }
     }
 
     private var thumbnail: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(DocScanStyle.selectedSurface)
+                .fill(DocScanStyle.surface)
 
             if let data = document.sortedPages.first?.imageData,
                let image = UIImage(data: data) {

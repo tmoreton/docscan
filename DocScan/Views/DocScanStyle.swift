@@ -6,7 +6,7 @@
 import SwiftUI
 
 enum DocScanStyle {
-    static let background = Color(red: 0.988, green: 0.988, blue: 0.982)
+    static let background = Color.white
     static let surface = Color.white
     static let selectedSurface = Color(red: 0.925, green: 0.925, blue: 0.918)
     static let ink = Color(red: 0.055, green: 0.055, blue: 0.055)
