@@ -96,15 +96,21 @@ struct DocumentProcessingOverlay: View {
 
 struct AppHeaderMark: View {
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 9, style: .continuous)
-                .fill(Color.accentColor)
+        HStack(spacing: 7) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(Color.black)
 
-            Image(systemName: "doc.viewfinder")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.white)
+                Image(systemName: "doc.viewfinder")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            .frame(width: 28, height: 28)
+
+            Text("DocScan")
+                .font(.headline.weight(.bold))
+                .foregroundStyle(.primary)
         }
-        .frame(width: 32, height: 32)
         .accessibilityLabel("DocScan")
     }
 }
@@ -123,10 +129,14 @@ private struct PrimaryScanButton: View {
 
                 Spacer(minLength: 8)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(.primary)
             .padding(.horizontal, 16)
             .frame(maxWidth: .infinity, minHeight: 62)
-            .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .background(Color.white, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(Color(.separator).opacity(0.4), lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
     }
@@ -158,7 +168,7 @@ private struct DocumentSearchField: View {
         }
         .padding(.horizontal, 12)
         .frame(minHeight: 48)
-        .background(Color.white)
+        .background(Color(red: 0.97, green: 0.97, blue: 0.96))
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 8, style: .continuous)

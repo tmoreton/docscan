@@ -25,10 +25,10 @@ struct DocumentDetailView: View {
             .padding(.top, 12)
             .padding(.bottom, 32)
         }
-        .background(Color.white)
+        .background(Color(red: 0.97, green: 0.97, blue: 0.96))
         .navigationTitle(document.title)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Color.white, for: .navigationBar)
+        .toolbarBackground(Color(red: 0.97, green: 0.97, blue: 0.96), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -83,7 +83,7 @@ struct DocumentDetailView: View {
                         .saturation(0)
                         .contrast(1.2)
                         .brightness(0.03)
-                        .background(Color.white)
+                        .background(Color(red: 0.97, green: 0.97, blue: 0.96))
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                         .overlay {
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -99,10 +99,11 @@ struct DocumentDetailView: View {
             HStack(spacing: 10) {
                 Text(document.category)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(Color.primary)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .background(Color.accentColor.opacity(0.12), in: Capsule())
+                    .background(Color.white, in: Capsule())
+                    .overlay(Capsule().stroke(Color(.separator).opacity(0.4), lineWidth: 1))
 
                 Text(document.createdAt.formatted(date: .abbreviated, time: .shortened))
                 Text("\(document.pageCount) page\(document.pageCount == 1 ? "" : "s")")
