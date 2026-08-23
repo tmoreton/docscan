@@ -16,30 +16,36 @@ struct DocumentRow: View {
             VStack(alignment: .leading, spacing: 5) {
                 Text(document.title)
                     .font(.headline)
+                    .foregroundStyle(DocScanStyle.ink)
                     .lineLimit(1)
 
                 Text(metadata)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(DocScanStyle.secondaryInk)
                     .lineLimit(1)
 
                 if hasSearchQuery {
                     Text(snippet)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(DocScanStyle.secondaryInk)
                         .lineLimit(2)
                 }
             }
 
             Spacer(minLength: 8)
         }
-        .padding(.vertical, 8)
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(DocScanStyle.surface)
+                .shadow(color: DocScanStyle.shadow.opacity(0.55), radius: 12, x: 0, y: 6)
+        )
     }
 
     private var thumbnail: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(Color(red: 0.95, green: 0.95, blue: 0.94))
+                .fill(DocScanStyle.selectedSurface)
 
             if let data = document.sortedPages.first?.imageData,
                let image = UIImage(data: data) {
@@ -54,14 +60,14 @@ struct DocumentRow: View {
             } else {
                 Image(systemName: "doc.viewfinder")
                     .font(.title2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(DocScanStyle.secondaryInk)
             }
         }
         .frame(width: 58, height: 74)
     }
 
     private var metadata: String {
-        "\(document.createdAt.formatted(date: .abbreviated, time: .omitted)) - \(document.pageCount) page\(document.pageCount == 1 ? "" : "s") - \(document.category)"
+        "\(document.createdAt.formatted(date: .abbreviated, time: .omitted)) | \(document.pageCount) page\(document.pageCount == 1 ? "" : "s") | \(document.category)"
     }
 
     private var hasSearchQuery: Bool {

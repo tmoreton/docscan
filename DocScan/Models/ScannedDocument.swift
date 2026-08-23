@@ -14,6 +14,8 @@ final class ScannedDocument {
     @Attribute(.spotlight, .allowsCloudEncryption) var fullText: String = ""
     @Attribute(.spotlight, .allowsCloudEncryption) var documentSummary: String = ""
     @Attribute(.spotlight, .allowsCloudEncryption) var keywordsText: String = ""
+    @Attribute(.allowsCloudEncryption) var fileStorageFolderName: String = ""
+    @Attribute(.allowsCloudEncryption) var filesExportedAt: Date?
     var createdAt: Date = Date()
     var updatedAt: Date = Date()
     var pageCount: Int = 0
@@ -28,6 +30,8 @@ final class ScannedDocument {
         fullText: String,
         documentSummary: String = "",
         keywordsText: String = "",
+        fileStorageFolderName: String = "",
+        filesExportedAt: Date? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         pageCount: Int = 0,
@@ -39,6 +43,8 @@ final class ScannedDocument {
         self.fullText = fullText
         self.documentSummary = documentSummary
         self.keywordsText = keywordsText
+        self.fileStorageFolderName = fileStorageFolderName
+        self.filesExportedAt = filesExportedAt
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.pageCount = pageCount
@@ -72,15 +78,18 @@ final class ScannedDocument {
     }
 
     var cleanedRecognizedText: String {
-        recognizedText
-            .split(whereSeparator: \.isNewline)
-            .map { line in
-                line
-                    .split(whereSeparator: \.isWhitespace)
-                    .joined(separator: " ")
-            }
-            .filter { !$0.isEmpty }
-            .joined(separator: "\n")
+        OCRTextFormatter.formattedText(
+            from: sortedPages.map(\.recognizedText),
+            fallback: recognizedText
+        )
+    }
+
+    var formattedRecognizedText: String {
+        OCRTextFormatter.formattedText(
+            from: sortedPages.map(\.recognizedText),
+            fallback: recognizedText,
+            includePageHeadings: true
+        )
     }
 
     var snippetText: String {

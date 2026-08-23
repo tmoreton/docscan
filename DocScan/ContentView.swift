@@ -62,8 +62,7 @@ struct ContentView: View {
                         }
                         .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                         .listRowBackground(Color.clear)
-                        .listRowSeparator(.visible)
-                        .listRowSeparatorTint(Color(.separator).opacity(0.35))
+                        .listRowSeparator(.hidden)
                         .swipeActions {
                             Button(role: .destructive) {
                                 delete(document)
@@ -76,21 +75,23 @@ struct ContentView: View {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
-            .background(Color(red: 0.97, green: 0.97, blue: 0.96))
+            .background(DocScanStyle.background)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Color(red: 0.97, green: 0.97, blue: 0.96), for: .navigationBar)
+            .toolbarBackground(DocScanStyle.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    AppHeaderMark()
+                    AppHeaderMark(onScan: presentScanner)
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
                     if !documents.isEmpty {
-                        Button(action: presentScanner) {
-                            Label("Scan", systemImage: "camera.viewfinder")
-                        }
+                        FloatingIconButton(
+                            systemImage: "camera.viewfinder",
+                            accessibilityLabel: "Scan document",
+                            action: presentScanner
+                        )
                     }
                 }
             }
@@ -181,13 +182,16 @@ struct ContentView: View {
             let pages = processedPages.map {
                 ScannedPage(index: $0.index, imageData: $0.imageData, recognizedText: $0.recognizedText, createdAt: createdAt)
             }
+            let documentID = UUID()
 
             let document = ScannedDocument(
+                id: documentID,
                 title: metadata.title,
                 category: metadata.category.rawValue,
                 fullText: fullText,
                 documentSummary: metadata.summary,
                 keywordsText: metadata.keywords.joined(separator: "\n"),
+                fileStorageFolderName: DocumentFileStore.makeFolderName(title: metadata.title, createdAt: createdAt, id: documentID),
                 createdAt: createdAt,
                 updatedAt: createdAt,
                 pageCount: pages.count,
@@ -200,6 +204,7 @@ struct ContentView: View {
 
             modelContext.insert(document)
             try modelContext.save()
+            saveDocumentFiles(document)
             enrichDocument(document, fullText: fullText, fallback: metadata)
         } catch {
             modelContext.rollback()
@@ -215,11 +220,28 @@ struct ContentView: View {
 
             do {
                 document.applyMetadata(metadata)
+                try exportDocumentFiles(document)
                 try modelContext.save()
             } catch {
                 modelContext.rollback()
             }
         }
+    }
+
+    private func saveDocumentFiles(_ document: ScannedDocument) {
+        do {
+            try exportDocumentFiles(document)
+            try modelContext.save()
+        } catch {
+            modelContext.rollback()
+            errorMessage = "The scan was saved, but DocScan could not write the Files copies: \(error.localizedDescription)"
+        }
+    }
+
+    private func exportDocumentFiles(_ document: ScannedDocument) throws {
+        let package = DocumentFileStore.exportPackage(for: document)
+        let report = try DocumentFileStore.export(package)
+        document.filesExportedAt = report.exportedAt
     }
 
     private func delete(_ document: ScannedDocument) {
