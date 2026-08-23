@@ -39,7 +39,7 @@ struct DocumentRow: View {
     private var thumbnail: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(Color(.systemGray6))
+                .fill(Color(red: 0.95, green: 0.95, blue: 0.94))
 
             if let data = document.sortedPages.first?.imageData,
                let image = UIImage(data: data) {

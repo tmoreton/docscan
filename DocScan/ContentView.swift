@@ -76,10 +76,10 @@ struct ContentView: View {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
-            .background(Color.white)
+            .background(Color(red: 0.97, green: 0.97, blue: 0.96))
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Color.white, for: .navigationBar)
+            .toolbarBackground(Color(red: 0.97, green: 0.97, blue: 0.96), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .principal) {
