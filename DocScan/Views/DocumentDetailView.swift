@@ -56,6 +56,10 @@ struct DocumentDetailView: View {
                     .padding(.horizontal, 16)
                     .frame(height: 42)
                     .background(DocScanStyle.surface, in: Capsule())
+                    .overlay {
+                        Capsule()
+                            .stroke(DocScanStyle.border, lineWidth: 1)
+                    }
                     .shadow(color: DocScanStyle.shadow, radius: 16, x: 0, y: 8)
                     .padding(.top, 12)
                     .transition(.move(edge: .top).combined(with: .opacity))
@@ -108,6 +112,7 @@ struct DocumentDetailView: View {
                         .saturation(0)
                         .contrast(1.2)
                         .brightness(0.03)
+                        .padding(6)
                         .background(DocScanStyle.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                         .overlay {
@@ -124,10 +129,14 @@ struct DocumentDetailView: View {
             HStack(spacing: 10) {
                 Text(document.category)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(DocScanStyle.blue)
+                    .foregroundStyle(DocScanStyle.categoryTint(for: document.category))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .background(DocScanStyle.blue.opacity(0.12), in: Capsule())
+                    .background(DocScanStyle.categoryTint(for: document.category).opacity(0.12), in: Capsule())
+                    .overlay {
+                        Capsule()
+                            .stroke(DocScanStyle.categoryTint(for: document.category).opacity(0.20), lineWidth: 1)
+                    }
 
                 Text(document.createdAt.formatted(date: .abbreviated, time: .shortened))
                 Text("\(document.pageCount) page\(document.pageCount == 1 ? "" : "s")")
@@ -187,6 +196,10 @@ struct DocumentDetailView: View {
                         .fill(DocScanStyle.surface)
                         .shadow(color: DocScanStyle.shadow.opacity(0.55), radius: 12, x: 0, y: 6)
                 )
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(DocScanStyle.border, lineWidth: 1)
+                }
         }
     }
 
@@ -328,5 +341,9 @@ private struct DetailActionPill: View {
                 .fill(DocScanStyle.surface)
                 .shadow(color: DocScanStyle.shadow, radius: 18, x: 0, y: 10)
         )
+        .overlay {
+            Capsule()
+                .stroke(DocScanStyle.border, lineWidth: 1)
+        }
     }
 }

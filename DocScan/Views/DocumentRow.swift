@@ -10,7 +10,13 @@ struct DocumentRow: View {
     let searchText: String
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 0) {
+            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                .fill(DocScanStyle.categoryTint(for: document.category))
+                .frame(width: 4)
+                .padding(.vertical, 6)
+                .padding(.trailing, 12)
+
             thumbnail
 
             VStack(alignment: .leading, spacing: 5) {
@@ -28,9 +34,10 @@ struct DocumentRow: View {
                     Text(snippet)
                         .font(.subheadline)
                         .foregroundStyle(DocScanStyle.secondaryInk)
-                        .lineLimit(2)
+                    .lineLimit(2)
                 }
             }
+            .padding(.leading, 12)
 
             Spacer(minLength: 8)
         }
@@ -49,7 +56,7 @@ struct DocumentRow: View {
     private var thumbnail: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(DocScanStyle.surface)
+                .fill(DocScanStyle.mutedSurface)
 
             if let data = document.sortedPages.first?.imageData,
                let image = UIImage(data: data) {
@@ -68,6 +75,10 @@ struct DocumentRow: View {
             }
         }
         .frame(width: 58, height: 74)
+        .overlay {
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .stroke(DocScanStyle.border, lineWidth: 1)
+        }
     }
 
     private var metadata: String {

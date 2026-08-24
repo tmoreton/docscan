@@ -54,6 +54,16 @@ struct DocumentArchiveEmptyState: View {
 
     var body: some View {
         VStack(spacing: 14) {
+            Image(systemName: hasActiveFilter ? "line.3.horizontal.decrease.circle" : "doc.text.viewfinder")
+                .font(.system(size: 32, weight: .semibold))
+                .foregroundStyle(DocScanStyle.blue)
+                .frame(width: 72, height: 72)
+                .background(DocScanStyle.selectedSurface, in: Circle())
+                .overlay {
+                    Circle()
+                        .stroke(DocScanStyle.border, lineWidth: 1)
+                }
+
             Text(hasActiveFilter ? "No Matches" : "No Documents Yet")
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(DocScanStyle.ink)
@@ -68,7 +78,7 @@ struct DocumentArchiveEmptyState: View {
                 Button(action: onClearFilters) {
                     Text("Clear Filters")
                         .font(.headline.weight(.semibold))
-                        .foregroundStyle(DocScanStyle.ink)
+                        .foregroundStyle(DocScanStyle.blue)
                         .frame(minWidth: 160)
                         .frame(height: 48)
                         .background(DocScanStyle.surface, in: Capsule())
@@ -110,24 +120,21 @@ struct AppHeaderMark: View {
         HStack(spacing: 4) {
             Text("Docs")
                 .font(.headline.weight(.semibold))
-                .foregroundStyle(DocScanStyle.ink)
+                .foregroundStyle(.white)
                 .padding(.horizontal, 22)
                 .frame(height: 44)
-                .background(DocScanStyle.surface, in: Capsule())
-                .overlay {
-                    Capsule()
-                        .stroke(DocScanStyle.border, lineWidth: 1)
-                }
+                .background(DocScanStyle.ink, in: Capsule())
 
             Button(action: { onScan?() }) {
-                Text("Scan")
-                    .font(.headline.weight(.medium))
-                    .foregroundStyle(DocScanStyle.ink)
-                    .padding(.horizontal, 22)
+                Image(systemName: "camera.viewfinder")
+                    .font(.system(size: 21, weight: .semibold))
+                    .foregroundStyle(DocScanStyle.blue)
+                    .frame(width: 58)
                     .frame(height: 44)
             }
             .buttonStyle(.plain)
             .disabled(onScan == nil)
+            .accessibilityLabel("Scan document")
         }
         .padding(6)
         .background(
@@ -135,6 +142,10 @@ struct AppHeaderMark: View {
                 .fill(DocScanStyle.surface)
                 .shadow(color: DocScanStyle.shadow, radius: 18, x: 0, y: 10)
         )
+        .overlay {
+            Capsule()
+                .stroke(DocScanStyle.border, lineWidth: 1)
+        }
         .accessibilityElement(children: .contain)
     }
 }
@@ -155,13 +166,13 @@ private struct PrimaryScanButton: View {
             }
             .padding(.horizontal, 16)
             .frame(maxWidth: .infinity, minHeight: 62)
-            .foregroundStyle(DocScanStyle.ink)
-            .background(DocScanStyle.surface, in: Capsule())
+            .foregroundStyle(.white)
+            .background(DocScanStyle.scanGradient, in: Capsule())
             .overlay {
                 Capsule()
-                    .stroke(DocScanStyle.border, lineWidth: 1)
+                    .stroke(Color.white.opacity(0.28), lineWidth: 1)
             }
-            .shadow(color: DocScanStyle.shadow.opacity(0.80), radius: 16, x: 0, y: 8)
+            .shadow(color: DocScanStyle.blue.opacity(0.22), radius: 16, x: 0, y: 8)
         }
         .buttonStyle(.plain)
     }
@@ -199,6 +210,10 @@ private struct DocumentSearchField: View {
                 .fill(DocScanStyle.surface)
                 .shadow(color: DocScanStyle.shadow.opacity(0.85), radius: 16, x: 0, y: 8)
         )
+        .overlay {
+            Capsule()
+                .stroke(DocScanStyle.border, lineWidth: 1)
+        }
     }
 }
 
@@ -251,10 +266,10 @@ private struct CategoryFilterMenu: View {
             .foregroundStyle(DocScanStyle.ink)
             .padding(.horizontal, 12)
             .frame(height: 34)
-            .background(DocScanStyle.surface, in: Capsule())
+            .background(DocScanStyle.selectedSurface, in: Capsule())
             .overlay {
                 Capsule()
-                    .stroke(DocScanStyle.border, lineWidth: 1)
+                    .stroke(DocScanStyle.strongBorder, lineWidth: 1)
             }
         }
         .buttonStyle(.plain)

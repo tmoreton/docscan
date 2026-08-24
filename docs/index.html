@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DocScan - Free Open Source Document Scanner</title>
+  <meta name="description" content="DocScan is a clean, free, open source iPhone and iPad app for scanning paper into searchable, organized documents.">
+  <meta property="og:title" content="DocScan">
+  <meta property="og:description" content="A clean, free, open source scanner for turning paper into searchable documents.">
+  <meta property="og:image" content="https://tmoreton.github.io/docscan/assets/docscan-hero.png">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tmoreton.github.io/docscan/">
+  <link rel="icon" href="assets/docscan-icon.png">
+  <link rel="preload" href="assets/docscan-hero.png" as="image">
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas: #f2f6f6;
+      --surface: #feffff;
+      --ink: #131519;
+      --muted: #646d76;
+      --blue: #005dc2;
+      --teal: #008579;
+      --orange: #cd5b0e;
+      --rose: #ae1d46;
+      --line: rgba(31, 36, 43, 0.14);
+      --shadow: 0 22px 70px rgba(22, 28, 36, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .site-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      border-bottom: 1px solid rgba(31, 36, 43, 0.08);
+      background: rgba(242, 246, 246, 0.78);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: min(1120px, calc(100% - 40px));
+      height: 64px;
+      margin: 0 auto;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 750;
+    }
+
+    .brand img {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0, 93, 194, 0.18);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 650;
+    }
+
+    .nav-links a:hover {
+      color: var(--ink);
+    }
+
+    .hero {
+      min-height: 88svh;
+      display: grid;
+      align-items: center;
+      padding: 112px 0 72px;
+      background-image:
+        linear-gradient(90deg, rgba(242, 246, 246, 0.99) 0%, rgba(242, 246, 246, 0.93) 42%, rgba(242, 246, 246, 0.15) 72%),
+        url("assets/docscan-hero.png");
+      background-size: cover;
+      background-position: center;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-inner {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 18px;
+      color: var(--blue);
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 24px;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--blue), var(--teal), var(--orange));
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 620px;
+      margin-bottom: 18px;
+      font-size: 8.75rem;
+      line-height: 0.86;
+      font-weight: 850;
+    }
+
+    .hero-copy {
+      max-width: 570px;
+      margin-bottom: 30px;
+      color: #2f3740;
+      font-size: 1.38rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 50px;
+      padding: 0 20px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-weight: 750;
+      box-shadow: 0 14px 34px rgba(22, 28, 36, 0.10);
+    }
+
+    .button.primary {
+      color: white;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--blue), var(--teal));
+    }
+
+    .button.secondary {
+      color: var(--ink);
+      background: rgba(254, 255, 255, 0.82);
+    }
+
+    main section {
+      padding: 82px 0;
+    }
+
+    .section-inner {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .section-heading {
+      max-width: 720px;
+      margin-bottom: 34px;
+    }
+
+    h2 {
+      margin-bottom: 12px;
+      font-size: 4.25rem;
+      line-height: 0.98;
+      font-weight: 820;
+    }
+
+    .section-heading p,
+    .open-copy p {
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .feature {
+      min-height: 230px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .feature-marker {
+      width: 36px;
+      height: 5px;
+      margin-bottom: 28px;
+      border-radius: 999px;
+      background: var(--blue);
+    }
+
+    .feature:nth-child(2) .feature-marker {
+      background: var(--teal);
+    }
+
+    .feature:nth-child(3) .feature-marker {
+      background: var(--orange);
+    }
+
+    .feature:nth-child(4) .feature-marker {
+      background: var(--rose);
+    }
+
+    h3 {
+      margin-bottom: 10px;
+      font-size: 1.18rem;
+      line-height: 1.15;
+    }
+
+    .feature p {
+      margin-bottom: 0;
+      color: var(--muted);
+    }
+
+    .open-source {
+      background: #15181d;
+      color: white;
+    }
+
+    .open-source .eyebrow {
+      color: #7cc7ff;
+    }
+
+    .open-source .section-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+      gap: 42px;
+      align-items: center;
+    }
+
+    .open-copy p {
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .repo-panel {
+      padding: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .repo-panel strong {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+
+    .repo-panel p {
+      margin-bottom: 22px;
+      color: rgba(255, 255, 255, 0.70);
+    }
+
+    .repo-panel .button {
+      box-shadow: none;
+    }
+
+    .workflow {
+      background: #eaf1f1;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .step {
+      padding: 24px;
+      border-top: 4px solid var(--blue);
+      background: rgba(254, 255, 255, 0.72);
+      border-radius: 8px;
+    }
+
+    .step:nth-child(2) {
+      border-top-color: var(--teal);
+    }
+
+    .step:nth-child(3) {
+      border-top-color: var(--orange);
+    }
+
+    .step span {
+      display: block;
+      margin-bottom: 34px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    footer {
+      padding: 28px 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      background: var(--canvas);
+      font-size: 0.95rem;
+    }
+
+    footer .section-inner {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    @media (max-width: 860px) {
+      .nav {
+        width: calc(100% - 28px);
+        max-width: 680px;
+      }
+
+      .nav-links a:first-child {
+        display: none;
+      }
+
+      .hero {
+        min-height: 90svh;
+        padding: 100px 0 64px;
+        background-image:
+          linear-gradient(180deg, rgba(242, 246, 246, 0.99) 0%, rgba(242, 246, 246, 0.90) 52%, rgba(242, 246, 246, 0.42) 100%),
+          url("assets/docscan-hero.png");
+        background-position: 62% center;
+      }
+
+      .hero-inner,
+      .section-inner {
+        width: calc(100% - 28px);
+        max-width: 680px;
+      }
+
+      h1 {
+        font-size: 5.8rem;
+      }
+
+      .hero-copy {
+        max-width: 480px;
+        font-size: 1.2rem;
+      }
+
+      h2 {
+        font-size: 3.2rem;
+      }
+
+      .feature-grid,
+      .steps,
+      .open-source .section-inner {
+        grid-template-columns: 1fr;
+      }
+
+      main section {
+        padding: 64px 0;
+      }
+
+      footer .section-inner {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .nav-links {
+        gap: 12px;
+        font-size: 0.88rem;
+      }
+
+      .nav-links a:not(:last-child) {
+        display: none;
+      }
+
+      .brand span {
+        display: none;
+      }
+
+      h1 {
+        font-size: 4.1rem;
+      }
+
+      h2 {
+        font-size: 2.5rem;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+        max-width: 348px;
+      }
+
+      .button {
+        width: 100%;
+      }
+
+      .hero-copy {
+        max-width: 342px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="brand" href="#top" aria-label="DocScan home">
+        <img src="assets/docscan-icon.png" alt="">
+        <span>DocScan</span>
+      </a>
+      <div class="nav-links">
+        <a href="#benefits">Benefits</a>
+        <a href="#open-source">Open source</a>
+        <a href="https://github.com/tmoreton/docscan">GitHub</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-inner">
+        <p class="eyebrow">Free open source scanner</p>
+        <h1 id="hero-title">DocScan</h1>
+        <p class="hero-copy">A clean iPhone and iPad app for turning paper into searchable documents, with automatic organization and simple exports to Files.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="https://github.com/tmoreton/docscan">View on GitHub</a>
+          <a class="button secondary" href="#benefits">See benefits</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="benefits">
+      <div class="section-inner">
+        <div class="section-heading">
+          <p class="eyebrow">Why it helps</p>
+          <h2>Paper goes in. Searchable files come out.</h2>
+          <p>DocScan focuses on the routine job: capture a document, read its text, categorize it, and keep the result easy to find later.</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature">
+            <div class="feature-marker"></div>
+            <h3>Searchable scans</h3>
+            <p>OCR turns scanned pages into selectable text, so receipts, statements, forms, and notes are easier to locate.</p>
+          </article>
+          <article class="feature">
+            <div class="feature-marker"></div>
+            <h3>Automatic organization</h3>
+            <p>Documents are named, summarized, and grouped into practical categories such as receipts, invoices, medical, tax, and travel.</p>
+          </article>
+          <article class="feature">
+            <div class="feature-marker"></div>
+            <h3>Exports to Files</h3>
+            <p>Each scan can be written to Apple Files with the document image, recognized text, and generated metadata kept together.</p>
+          </article>
+          <article class="feature">
+            <div class="feature-marker"></div>
+            <h3>No account required</h3>
+            <p>The app keeps the scanner workflow direct, without subscriptions, sign-in screens, or a cloud dashboard to manage.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="open-source" id="open-source">
+      <div class="section-inner">
+        <div class="open-copy">
+          <p class="eyebrow">Free and inspectable</p>
+          <h2>Open source software should feel polished too.</h2>
+          <p>DocScan is built as a focused native app: simple enough to understand, useful enough for real paperwork, and open enough for anyone to inspect or improve.</p>
+        </div>
+        <aside class="repo-panel" aria-label="GitHub repository">
+          <strong>Source on GitHub</strong>
+          <p>Follow development, review the SwiftUI implementation, or fork the app for your own document workflow.</p>
+          <a class="button primary" href="https://github.com/tmoreton/docscan">Open repository</a>
+        </aside>
+      </div>
+    </section>
+
+    <section class="workflow" aria-labelledby="workflow-title">
+      <div class="section-inner">
+        <div class="section-heading">
+          <p class="eyebrow">Workflow</p>
+          <h2 id="workflow-title">Built around the scan archive.</h2>
+        </div>
+        <div class="steps">
+          <article class="step">
+            <span>Capture</span>
+            <h3>Scan documents with the camera</h3>
+            <p>Use the native document scanner to capture clean page images quickly.</p>
+          </article>
+          <article class="step">
+            <span>Recognize</span>
+            <h3>Extract the text layer</h3>
+            <p>Readable text is saved beside the scan so documents are searchable later.</p>
+          </article>
+          <article class="step">
+            <span>Archive</span>
+            <h3>Keep files organized</h3>
+            <p>Find documents by category, title, date, or content whenever paperwork comes back up.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="section-inner">
+      <span>DocScan is free, open source, and built for iPhone and iPad.</span>
+      <a href="https://github.com/tmoreton/docscan">github.com/tmoreton/docscan</a>
+    </div>
+  </footer>
+</body>
+</html>
