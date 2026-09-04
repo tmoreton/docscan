@@ -10,6 +10,7 @@ import UIKit
 struct DocumentDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let document: ScannedDocument
     @State private var isDeleteConfirmationPresented = false
     @State private var hasCopiedText = false
@@ -27,6 +28,7 @@ struct DocumentDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 metadata
+                storageCard
                 pageImages
                 recognizedText
             }
@@ -41,26 +43,24 @@ struct DocumentDetailView: View {
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                DetailActionPill(
+                DetailMoreMenu(
                     isOpeningFiles: isExportingFiles,
+                    hasRecognizedText: !displayRecognizedText.isEmpty,
                     openFilesAction: openFiles,
+                    copyTextAction: copyRecognizedText,
                     deleteAction: { isDeleteConfirmationPresented = true }
                 )
             }
         }
         .overlay(alignment: .top) {
             if hasCopiedText {
-                Text("Recognized text copied")
+                Label("Recognized text copied", systemImage: "checkmark")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(DocScanStyle.ink)
+                    .foregroundStyle(.white)
                     .padding(.horizontal, 16)
                     .frame(height: 42)
-                    .background(DocScanStyle.surface, in: Capsule())
-                    .overlay {
-                        Capsule()
-                            .stroke(DocScanStyle.border, lineWidth: 1)
-                    }
-                    .shadow(color: DocScanStyle.shadow, radius: 16, x: 0, y: 8)
+                    .background(DocScanStyle.darkSurface, in: Capsule())
+                    .shadow(color: Color.black.opacity(0.16), radius: 16, x: 0, y: 8)
                     .padding(.top, 12)
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
@@ -103,6 +103,11 @@ struct DocumentDetailView: View {
 
     private var pageImages: some View {
         VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(
+                title: "Scanned pages",
+                detail: "\(document.pageCount) page\(document.pageCount == 1 ? "" : "s")"
+            )
+
             ForEach(document.sortedPages) { page in
                 if let data = page.imageData,
                    let image = UIImage(data: data) {
@@ -112,13 +117,14 @@ struct DocumentDetailView: View {
                         .saturation(0)
                         .contrast(1.2)
                         .brightness(0.03)
-                        .padding(6)
+                        .padding(8)
                         .background(DocScanStyle.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         .overlay {
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .stroke(DocScanStyle.border, lineWidth: 1)
                         }
+                        .shadow(color: DocScanStyle.shadow, radius: 12, x: 0, y: 6)
                 }
             }
         }
@@ -126,25 +132,22 @@ struct DocumentDetailView: View {
 
     private var metadata: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
-                Text(document.category)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(DocScanStyle.categoryTint(for: document.category))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(DocScanStyle.categoryTint(for: document.category).opacity(0.12), in: Capsule())
-                    .overlay {
-                        Capsule()
-                            .stroke(DocScanStyle.categoryTint(for: document.category).opacity(0.20), lineWidth: 1)
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 8) {
+                        categoryBadge
+                        createdDate
                     }
-
-                Text(document.createdAt.formatted(date: .abbreviated, time: .shortened))
-                Text("\(document.pageCount) page\(document.pageCount == 1 ? "" : "s")")
-                Spacer(minLength: 0)
+                } else {
+                    HStack(spacing: 10) {
+                        categoryBadge
+                        createdDate
+                        Spacer(minLength: 0)
+                    }
+                }
             }
             .font(.caption)
             .foregroundStyle(.secondary)
-            .lineLimit(1)
 
             if !document.cleanedSummary.isEmpty {
                 Text(document.cleanedSummary)
@@ -156,32 +159,160 @@ struct DocumentDetailView: View {
         }
     }
 
-    private var recognizedText: some View {
-        VStack(alignment: .leading, spacing: 12) {
+    private var categoryBadge: some View {
+        Text(document.category)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(DocScanStyle.secondaryInk)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(DocScanStyle.mutedSurface, in: Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(DocScanStyle.border, lineWidth: 1)
+            }
+    }
+
+    private var createdDate: some View {
+        Text(document.createdAt.formatted(date: .abbreviated, time: .shortened))
+            .foregroundStyle(DocScanStyle.secondaryInk)
+    }
+
+    private var storageCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("SAVED")
+                .font(.caption2.weight(.bold))
+                .tracking(0.8)
+                .foregroundStyle(DocScanStyle.tertiaryInk)
+
+            storageRow(
+                systemImage: "checkmark",
+                title: "DocScan library",
+                detail: "Searchable in this app"
+            )
+
             Divider()
 
-            HStack(spacing: 12) {
-                Text("Recognized Text")
-                    .font(.headline)
+            storageRow(
+                systemImage: document.filesExportedAt == nil ? "arrow.clockwise" : "checkmark",
+                title: "Files copy",
+                detail: filesStatusText
+            )
+
+            Text("Each page is saved as an image with the recognized text in the same folder.")
+                .font(.caption)
+                .foregroundStyle(DocScanStyle.secondaryInk)
+                .lineSpacing(2)
+
+            Button(action: openFiles) {
+                HStack(spacing: 8) {
+                    if isExportingFiles {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Image(systemName: "folder")
+                    }
+
+                    Text(document.filesExportedAt == nil ? "Create Files copy" : "View in Files")
+                }
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity, minHeight: 52)
+                .background(DocScanStyle.blue, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .disabled(isExportingFiles)
+        }
+        .padding(16)
+        .background(DocScanStyle.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(DocScanStyle.border, lineWidth: 1)
+        }
+        .shadow(color: DocScanStyle.shadow, radius: 14, x: 0, y: 7)
+    }
+
+    private var filesStatusText: String {
+        if isExportingFiles {
+            return "Creating Files copy…"
+        }
+
+        guard document.filesExportedAt != nil else {
+            return "Not created yet"
+        }
+
+        if storageLocations?.iCloud != nil {
+            return "iCloud Drive + \(storageLocations?.local.title ?? "On this device")"
+        }
+
+        return storageLocations?.local.title ?? "On this device"
+    }
+
+    private func storageRow(systemImage: String, title: String, detail: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 28, height: 28)
+                .background(DocScanStyle.blue, in: Circle())
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(DocScanStyle.ink)
 
-                Spacer(minLength: 8)
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(DocScanStyle.secondaryInk)
+            }
 
-                Button(action: copyRecognizedText) {
-                    Image(systemName: hasCopiedText ? "checkmark" : "doc.on.doc")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(displayRecognizedText.isEmpty ? DocScanStyle.secondaryInk.opacity(0.45) : DocScanStyle.ink)
-                        .frame(width: 42, height: 36)
-                        .background(DocScanStyle.surface, in: Capsule())
-                        .overlay {
-                            Capsule()
-                                .stroke(DocScanStyle.border, lineWidth: 1)
-                        }
-                        .shadow(color: DocScanStyle.shadow.opacity(0.45), radius: 10, x: 0, y: 5)
+            Spacer(minLength: 0)
+        }
+    }
+
+    private func sectionHeader(title: String, detail: String) -> some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 3) {
+                    sectionTitle(title)
+                    sectionDetail(detail)
                 }
-                .buttonStyle(.plain)
-                .disabled(displayRecognizedText.isEmpty)
-                .accessibilityLabel(hasCopiedText ? "Recognized text copied" : "Copy recognized text")
+            } else {
+                HStack(alignment: .firstTextBaseline) {
+                    sectionTitle(title)
+                    Spacer(minLength: 8)
+                    sectionDetail(detail)
+                }
+            }
+        }
+    }
+
+    private func sectionTitle(_ title: String) -> some View {
+        Text(title)
+            .font(.headline)
+            .foregroundStyle(DocScanStyle.ink)
+    }
+
+    private func sectionDetail(_ detail: String) -> some View {
+        Text(detail)
+            .font(.caption.weight(.medium))
+            .foregroundStyle(DocScanStyle.tertiaryInk)
+    }
+
+    private var recognizedText: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 10) {
+                        sectionHeader(title: "Recognized text", detail: "Searchable")
+                        copyTextButton
+                    }
+                } else {
+                    HStack(spacing: 12) {
+                        sectionHeader(title: "Recognized text", detail: "Searchable")
+                        Spacer(minLength: 8)
+                        copyTextButton
+                    }
+                }
             }
 
             Text(displayRecognizedText.isEmpty ? "No text recognized." : displayRecognizedText)
@@ -192,15 +323,37 @@ struct DocumentDetailView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(14)
                 .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .fill(DocScanStyle.surface)
-                        .shadow(color: DocScanStyle.shadow.opacity(0.55), radius: 12, x: 0, y: 6)
+                        .shadow(color: DocScanStyle.shadow, radius: 12, x: 0, y: 6)
                 )
                 .overlay {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .stroke(DocScanStyle.border, lineWidth: 1)
                 }
         }
+    }
+
+    private var copyTextButton: some View {
+        Button(action: copyRecognizedText) {
+            Label(
+                hasCopiedText ? "Copied" : "Copy text",
+                systemImage: hasCopiedText ? "checkmark" : "doc.on.doc"
+            )
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(displayRecognizedText.isEmpty ? DocScanStyle.tertiaryInk : DocScanStyle.blue)
+            .padding(.horizontal, 13)
+            .frame(minHeight: 42)
+            .background(DocScanStyle.surface, in: Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(DocScanStyle.border, lineWidth: 1)
+            }
+            .shadow(color: DocScanStyle.shadow.opacity(0.45), radius: 10, x: 0, y: 5)
+        }
+        .buttonStyle(.plain)
+        .disabled(displayRecognizedText.isEmpty)
+        .accessibilityLabel(hasCopiedText ? "Recognized text copied" : "Copy recognized text")
     }
 
     private func exportFilesIfNeeded() {
@@ -304,46 +457,36 @@ struct DocumentDetailView: View {
     }
 }
 
-private struct DetailActionPill: View {
+private struct DetailMoreMenu: View {
     let isOpeningFiles: Bool
+    let hasRecognizedText: Bool
     let openFilesAction: () -> Void
+    let copyTextAction: () -> Void
     let deleteAction: () -> Void
 
     var body: some View {
-        HStack(spacing: 0) {
+        Menu {
             Button(action: openFilesAction) {
-                Image(systemName: "folder")
-                    .font(.system(size: 21, weight: .semibold))
-                    .foregroundStyle(isOpeningFiles ? DocScanStyle.secondaryInk.opacity(0.45) : DocScanStyle.ink)
-                    .frame(width: 50, height: 46)
+                Label("View in Files", systemImage: "folder")
             }
-            .buttonStyle(.plain)
             .disabled(isOpeningFiles)
-            .accessibilityLabel("Open exported files")
 
-            Rectangle()
-                .fill(DocScanStyle.border)
-                .frame(width: 1, height: 26)
-
-            Button(action: deleteAction) {
-                Image(systemName: "trash")
-                    .font(.system(size: 21, weight: .semibold))
-                    .foregroundStyle(DocScanStyle.ink)
-                    .frame(width: 50, height: 46)
+            Button(action: copyTextAction) {
+                Label("Copy recognized text", systemImage: "doc.on.doc")
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Delete document")
+            .disabled(!hasRecognizedText)
+
+            Divider()
+
+            Button(role: .destructive, action: deleteAction) {
+                Label("Delete document", systemImage: "trash")
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(DocScanStyle.ink)
+                .frame(width: 42, height: 42)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .background(
-            Capsule()
-                .fill(DocScanStyle.surface)
-                .shadow(color: DocScanStyle.shadow, radius: 18, x: 0, y: 10)
-        )
-        .overlay {
-            Capsule()
-                .stroke(DocScanStyle.border, lineWidth: 1)
-        }
+        .accessibilityLabel("Document actions")
     }
 }

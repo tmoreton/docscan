@@ -17,8 +17,11 @@ struct ContentView: View {
     @AppStorage("hasPresentedInitialScanner") private var hasPresentedInitialScanner = false
     @State private var searchText = ""
     @State private var selectedCategory: DocumentCategory = .all
+    @State private var navigationPath: [UUID] = []
     @State private var isScannerPresented = false
     @State private var isProcessingScan = false
+    @State private var processingPageCount = 0
+    @State private var savedNotice: SavedDocumentNotice?
     @State private var errorMessage: String?
 
     private var filteredDocuments: [ScannedDocument] {
@@ -33,41 +36,63 @@ struct ContentView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             List {
-                DocumentArchiveControls(
-                    searchText: $searchText,
-                    selectedCategory: $selectedCategory,
+                DocumentArchiveHeader(
                     documentCount: documents.count,
-                    filteredCount: filteredDocuments.count,
-                    hasActiveFilter: hasActiveFilter,
-                    onScan: presentScanner,
-                    onClearFilters: clearFilters
+                    onScan: presentScanner
                 )
 
-                if filteredDocuments.isEmpty {
+                if let savedNotice {
+                    DocumentSavedNotice(
+                        title: savedNotice.title,
+                        storageSummary: savedNotice.storageSummary,
+                        dismissAction: { self.savedNotice = nil }
+                    )
+                }
+
+                if documents.isEmpty {
                     DocumentArchiveEmptyState(
-                        hasActiveFilter: hasActiveFilter,
+                        hasActiveFilter: false,
+                        onScan: presentScanner,
                         onClearFilters: clearFilters
                     )
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                 } else {
-                    ForEach(filteredDocuments) { document in
-                        NavigationLink {
-                            DocumentDetailView(document: document)
-                        } label: {
-                            DocumentRow(document: document, searchText: searchText)
-                        }
-                        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                    DocumentArchiveControls(
+                        searchText: $searchText,
+                        selectedCategory: $selectedCategory,
+                        documentCount: documents.count,
+                        filteredCount: filteredDocuments.count,
+                        hasActiveFilter: hasActiveFilter,
+                        onClearFilters: clearFilters
+                    )
+
+                    if filteredDocuments.isEmpty {
+                        DocumentArchiveEmptyState(
+                            hasActiveFilter: true,
+                            onScan: presentScanner,
+                            onClearFilters: clearFilters
+                        )
+                        .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
-                        .swipeActions {
-                            Button(role: .destructive) {
-                                delete(document)
-                            } label: {
-                                Label("Delete", systemImage: "trash")
+                    } else {
+                        ForEach(filteredDocuments) { document in
+                            NavigationLink(value: document.id) {
+                                DocumentRow(document: document, searchText: searchText)
+                            }
+                            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .swipeActions {
+                                Button(role: .destructive) {
+                                    delete(document)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
                             }
                         }
                     }
@@ -80,24 +105,21 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(DocScanStyle.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    AppHeaderMark(onScan: presentScanner)
-                }
-
-                ToolbarItem(placement: .topBarTrailing) {
-                    if !documents.isEmpty {
-                        FloatingIconButton(
-                            systemImage: "camera.viewfinder",
-                            accessibilityLabel: "Scan document",
-                            action: presentScanner
-                        )
-                    }
+            .tint(DocScanStyle.blue)
+            .navigationDestination(for: UUID.self) { documentID in
+                if let document = documents.first(where: { $0.id == documentID }) {
+                    DocumentDetailView(document: document)
+                } else {
+                    ContentUnavailableView(
+                        "Document unavailable",
+                        systemImage: "doc.text.magnifyingglass",
+                        description: Text("Return to the archive and try again.")
+                    )
                 }
             }
             .overlay {
                 if isProcessingScan {
-                    DocumentProcessingOverlay()
+                    DocumentProcessingOverlay(pageCount: processingPageCount)
                 }
             }
             .fullScreenCover(isPresented: $isScannerPresented) {
@@ -114,6 +136,11 @@ struct ContentView: View {
                 Text(errorMessage ?? "")
             }
             .task {
+                #if DEBUG
+                DebugPreviewData.seedIfRequested(in: modelContext)
+                configurePreviewStateIfRequested()
+                openPreviewDetailIfRequested()
+                #endif
                 presentInitialScannerIfNeeded()
             }
         }
@@ -136,7 +163,51 @@ struct ContentView: View {
         selectedCategory = .all
     }
 
+    #if DEBUG
+    private func configurePreviewStateIfRequested() {
+        let arguments = ProcessInfo.processInfo.arguments
+
+        if arguments.contains("-show-processing-preview") {
+            processingPageCount = 3
+            isProcessingScan = true
+        }
+
+        guard arguments.contains("-show-saved-preview") else {
+            return
+        }
+
+        var descriptor = FetchDescriptor<ScannedDocument>(
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        descriptor.fetchLimit = 1
+
+        if let document = try? modelContext.fetch(descriptor).first {
+            let locations = DocumentFileStore.availableLocations(folderName: document.fileStorageFolderName).available
+            savedNotice = SavedDocumentNotice(
+                title: document.title,
+                storageSummary: storageSummary(for: locations)
+            )
+        }
+    }
+
+    private func openPreviewDetailIfRequested() {
+        guard ProcessInfo.processInfo.arguments.contains("-open-preview-detail") else {
+            return
+        }
+
+        var descriptor = FetchDescriptor<ScannedDocument>(
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        descriptor.fetchLimit = 1
+
+        if let document = try? modelContext.fetch(descriptor).first {
+            navigationPath = [document.id]
+        }
+    }
+    #endif
+
     private func handleScan(_ images: [UIImage]) {
+        processingPageCount = images.count
         Task {
             await saveScan(images)
         }
@@ -220,7 +291,7 @@ struct ContentView: View {
 
             do {
                 document.applyMetadata(metadata)
-                try exportDocumentFiles(document)
+                _ = try exportDocumentFiles(document)
                 try modelContext.save()
             } catch {
                 modelContext.rollback()
@@ -230,18 +301,33 @@ struct ContentView: View {
 
     private func saveDocumentFiles(_ document: ScannedDocument) {
         do {
-            try exportDocumentFiles(document)
+            let report = try exportDocumentFiles(document)
             try modelContext.save()
+            savedNotice = SavedDocumentNotice(
+                title: document.title,
+                storageSummary: storageSummary(for: report.locations)
+            )
         } catch {
             modelContext.rollback()
             errorMessage = "The scan was saved, but DocScan could not write the Files copies: \(error.localizedDescription)"
         }
     }
 
-    private func exportDocumentFiles(_ document: ScannedDocument) throws {
+    private func exportDocumentFiles(_ document: ScannedDocument) throws -> DocumentFileExportReport {
         let package = DocumentFileStore.exportPackage(for: document)
         let report = try DocumentFileStore.export(package)
         document.filesExportedAt = report.exportedAt
+        return report
+    }
+
+    private func storageSummary(for locations: [DocumentFileLocation]) -> String {
+        let localTitle = locations.first(where: { $0.kind == .local })?.title ?? "On this device"
+
+        if locations.contains(where: { $0.kind == .iCloud }) {
+            return "Files · iCloud Drive + \(localTitle)"
+        }
+
+        return "Files · \(localTitle)"
     }
 
     private func delete(_ document: ScannedDocument) {
@@ -253,6 +339,11 @@ struct ContentView: View {
             errorMessage = error.localizedDescription
         }
     }
+}
+
+private struct SavedDocumentNotice {
+    let title: String
+    let storageSummary: String
 }
 
 #Preview {

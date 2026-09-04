@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import UIKit
 
 struct DocumentFileExportPackage: Sendable {
     let id: UUID
@@ -44,7 +45,7 @@ struct DocumentFileLocation: Identifiable, Equatable, Sendable {
     var title: String {
         switch kind {
         case .local:
-            "On My iPhone"
+            UIDevice.current.userInterfaceIdiom == .pad ? "On My iPad" : "On My iPhone"
         case .iCloud:
             "iCloud Drive"
         }
@@ -118,10 +119,11 @@ enum DocumentFileStore {
     }
 
     static func availableLocations(folderName: String) -> DocumentFileLocations {
+        let localFilesTitle = UIDevice.current.userInterfaceIdiom == .pad ? "On My iPad" : "On My iPhone"
         let local = DocumentFileLocation(
             kind: .local,
             url: localArchiveURL.appendingPathComponent(folderName, isDirectory: true),
-            displayPath: "Files > On My iPhone > DocScan > \(archiveFolderName) > \(folderName)",
+            displayPath: "Files > \(localFilesTitle) > DocScan > \(archiveFolderName) > \(folderName)",
             persistenceNote: "Visible while the app is installed. iOS removes this copy if the app is deleted."
         )
 

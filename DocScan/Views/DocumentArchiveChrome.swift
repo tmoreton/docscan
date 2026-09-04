@@ -5,6 +5,47 @@
 
 import SwiftUI
 
+struct DocumentArchiveHeader: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    let documentCount: Int
+    let onScan: () -> Void
+
+    var body: some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 16) {
+                    title
+                    ArchiveScanButton(action: onScan)
+                }
+            } else {
+                HStack(alignment: .center, spacing: 16) {
+                    title
+                    Spacer(minLength: 8)
+                    ArchiveScanButton(action: onScan)
+                }
+            }
+        }
+        .padding(.top, 8)
+        .padding(.bottom, 6)
+        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
+    }
+
+    private var title: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text("Documents")
+                .font(.largeTitle.weight(.bold))
+                .foregroundStyle(DocScanStyle.ink)
+
+            Text(documentCount == 0 ? "Your searchable archive" : "\(documentCount) saved and searchable")
+                .font(.subheadline)
+                .foregroundStyle(DocScanStyle.secondaryInk)
+        }
+    }
+}
+
 struct DocumentArchiveControls: View {
     @Binding var searchText: String
     @Binding var selectedCategory: DocumentCategory
@@ -12,12 +53,11 @@ struct DocumentArchiveControls: View {
     let documentCount: Int
     let filteredCount: Int
     let hasActiveFilter: Bool
-    let onScan: () -> Void
     let onClearFilters: () -> Void
 
     private var resultSummary: String {
         if hasActiveFilter {
-            return "\(filteredCount) of \(documentCount)"
+            return "Showing \(filteredCount) of \(documentCount)"
         }
 
         return "\(documentCount) document\(documentCount == 1 ? "" : "s")"
@@ -25,23 +65,17 @@ struct DocumentArchiveControls: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if documentCount == 0 && !hasActiveFilter {
-                PrimaryScanButton(action: onScan)
-            }
-
             DocumentSearchField(searchText: $searchText)
 
-            if documentCount > 0 {
-                DocumentFilterSummary(
-                    resultSummary: resultSummary,
-                    hasActiveFilter: hasActiveFilter,
-                    selectedCategory: $selectedCategory,
-                    clearAction: onClearFilters
-                )
-            }
+            DocumentFilterSummary(
+                resultSummary: resultSummary,
+                hasActiveFilter: hasActiveFilter,
+                selectedCategory: $selectedCategory,
+                clearAction: onClearFilters
+            )
         }
-        .padding(.top, 12)
-        .padding(.bottom, 8)
+        .padding(.top, 8)
+        .padding(.bottom, 6)
         .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
@@ -50,107 +84,179 @@ struct DocumentArchiveControls: View {
 
 struct DocumentArchiveEmptyState: View {
     let hasActiveFilter: Bool
+    let onScan: () -> Void
     let onClearFilters: () -> Void
 
     var body: some View {
-        VStack(spacing: 14) {
-            Image(systemName: hasActiveFilter ? "line.3.horizontal.decrease.circle" : "doc.text.viewfinder")
-                .font(.system(size: 32, weight: .semibold))
-                .foregroundStyle(DocScanStyle.blue)
+        VStack(spacing: 20) {
+            Image(systemName: hasActiveFilter ? "line.3.horizontal.decrease" : "doc.viewfinder")
+                .font(.system(size: 30, weight: .semibold))
+                .foregroundStyle(.white)
                 .frame(width: 72, height: 72)
-                .background(DocScanStyle.selectedSurface, in: Circle())
-                .overlay {
-                    Circle()
-                        .stroke(DocScanStyle.border, lineWidth: 1)
-                }
+                .background(DocScanStyle.darkSurface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
 
-            Text(hasActiveFilter ? "No Matches" : "No Documents Yet")
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(DocScanStyle.ink)
+            VStack(spacing: 8) {
+                Text(hasActiveFilter ? "No matching documents" : "Paper in. Clarity out.")
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(DocScanStyle.ink)
 
-            Text(hasActiveFilter ? "Try a different search or category." : "Scan a document to start your archive.")
+                Text(
+                    hasActiveFilter
+                        ? "Try a different search or category."
+                        : "Scan a document to make it searchable and save a clear copy in Files."
+                )
                 .font(.body)
                 .foregroundStyle(DocScanStyle.secondaryInk)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 280)
+                .lineSpacing(3)
+                .frame(maxWidth: 310)
+            }
 
             if hasActiveFilter {
-                Button(action: onClearFilters) {
-                    Text("Clear Filters")
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(DocScanStyle.blue)
-                        .frame(minWidth: 160)
-                        .frame(height: 48)
-                        .background(DocScanStyle.surface, in: Capsule())
-                        .overlay {
-                            Capsule()
-                                .stroke(DocScanStyle.border, lineWidth: 1)
-                        }
-                        .shadow(color: DocScanStyle.shadow.opacity(0.65), radius: 14, x: 0, y: 8)
+                Button("Clear filters", action: onClearFilters)
+                    .font(.headline.weight(.semibold))
+                    .foregroundStyle(DocScanStyle.blue)
+                    .padding(.horizontal, 24)
+                    .frame(minHeight: 50)
+                    .background(DocScanStyle.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(DocScanStyle.border, lineWidth: 1)
+                    }
+            } else {
+                PrimaryScanButton(title: "Scan first document", action: onScan)
+                    .frame(maxWidth: 340)
+
+                HStack(spacing: 6) {
+                    Image(systemName: "lock.shield")
+                    Text("On-device text recognition")
                 }
-                .buttonStyle(.plain)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(DocScanStyle.tertiaryInk)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 320)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 34)
+        .frame(maxWidth: .infinity, minHeight: 460)
+        .background(DocScanStyle.surface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(DocScanStyle.border, lineWidth: 1)
+        }
+        .shadow(color: DocScanStyle.shadow, radius: 18, x: 0, y: 8)
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
+    }
+}
+
+struct DocumentSavedNotice: View {
+    let title: String
+    let storageSummary: String
+    let dismissAction: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "checkmark")
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 32, height: 32)
+                .background(DocScanStyle.blue, in: Circle())
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Saved and searchable")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(DocScanStyle.ink)
+
+                Text("\(title) · \(storageSummary)")
+                    .font(.caption)
+                    .foregroundStyle(DocScanStyle.secondaryInk)
+                    .lineLimit(2)
+            }
+
+            Spacer(minLength: 4)
+
+            Button(action: dismissAction) {
+                Image(systemName: "xmark")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(DocScanStyle.secondaryInk)
+                    .frame(width: 32, height: 32)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Dismiss saved message")
+        }
+        .padding(14)
+        .background(DocScanStyle.selectedSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(DocScanStyle.blue.opacity(0.22), lineWidth: 1)
+        }
+        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 4, trailing: 16))
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
     }
 }
 
 struct DocumentProcessingOverlay: View {
+    let pageCount: Int
+
     var body: some View {
         ZStack {
-            Color.black.opacity(0.2)
-                .ignoresSafeArea()
+            Color.black.opacity(0.26)
 
-            VStack(spacing: 12) {
+            VStack(spacing: 16) {
                 ProgressView()
-                Text("Saving scan")
-                    .font(.headline)
+                    .controlSize(.large)
+                    .tint(DocScanStyle.blue)
+
+                VStack(spacing: 5) {
+                    Text("Saving \(pageCount) page\(pageCount == 1 ? "" : "s")")
+                        .font(.headline)
+                        .foregroundStyle(DocScanStyle.ink)
+
+                    Text("Recognizing text and creating your Files copies.")
+                        .font(.subheadline)
+                        .foregroundStyle(DocScanStyle.secondaryInk)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(2)
+                }
             }
             .padding(24)
-            .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .frame(maxWidth: 290)
+            .background(DocScanStyle.surface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(DocScanStyle.border, lineWidth: 1)
+            }
+            .shadow(color: Color.black.opacity(0.16), radius: 28, x: 0, y: 14)
         }
     }
 }
 
-struct AppHeaderMark: View {
-    var onScan: (() -> Void)?
+struct ArchiveScanButton: View {
+    let action: () -> Void
 
     var body: some View {
-        HStack(spacing: 4) {
-            Text("Docs")
-                .font(.headline.weight(.semibold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 22)
-                .frame(height: 44)
-                .background(DocScanStyle.ink, in: Capsule())
-
-            Button(action: { onScan?() }) {
+        Button(action: action) {
+            HStack(spacing: 7) {
                 Image(systemName: "camera.viewfinder")
-                    .font(.system(size: 21, weight: .semibold))
-                    .foregroundStyle(DocScanStyle.blue)
-                    .frame(width: 58)
-                    .frame(height: 44)
+                Text("Scan")
             }
-            .buttonStyle(.plain)
-            .disabled(onScan == nil)
-            .accessibilityLabel("Scan document")
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .frame(minHeight: 42)
+                .background(DocScanStyle.blue, in: Capsule())
         }
-        .padding(6)
-        .background(
-            Capsule()
-                .fill(DocScanStyle.surface)
-                .shadow(color: DocScanStyle.shadow, radius: 18, x: 0, y: 10)
-        )
-        .overlay {
-            Capsule()
-                .stroke(DocScanStyle.border, lineWidth: 1)
-        }
-        .accessibilityElement(children: .contain)
+        .buttonStyle(.plain)
+        .accessibilityLabel("Scan document")
     }
 }
 
 private struct PrimaryScanButton: View {
+    let title: String
     let action: () -> Void
 
     var body: some View {
@@ -159,20 +265,20 @@ private struct PrimaryScanButton: View {
                 Image(systemName: "camera.viewfinder")
                     .font(.title3.weight(.semibold))
 
-                Text("Scan Document")
+                Text(title)
                     .font(.headline.weight(.semibold))
 
                 Spacer(minLength: 8)
+
+                Image(systemName: "arrow.right")
+                    .font(.subheadline.weight(.bold))
             }
-            .padding(.horizontal, 16)
-            .frame(maxWidth: .infinity, minHeight: 62)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, minHeight: 58)
             .foregroundStyle(.white)
-            .background(DocScanStyle.scanGradient, in: Capsule())
-            .overlay {
-                Capsule()
-                    .stroke(Color.white.opacity(0.28), lineWidth: 1)
-            }
-            .shadow(color: DocScanStyle.blue.opacity(0.22), radius: 16, x: 0, y: 8)
+            .background(DocScanStyle.blue, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: DocScanStyle.blue.opacity(0.20), radius: 14, x: 0, y: 8)
         }
         .buttonStyle(.plain)
     }
@@ -186,7 +292,7 @@ private struct DocumentSearchField: View {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(DocScanStyle.secondaryInk)
 
-            TextField("Search documents", text: $searchText)
+            TextField("Search titles or recognized text", text: $searchText)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .submitLabel(.search)
@@ -197,41 +303,56 @@ private struct DocumentSearchField: View {
                     searchText = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(DocScanStyle.tertiaryInk)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Clear search")
             }
         }
-        .padding(.horizontal, 16)
-        .frame(minHeight: 54)
-        .background(
-            Capsule()
-                .fill(DocScanStyle.surface)
-                .shadow(color: DocScanStyle.shadow.opacity(0.85), radius: 16, x: 0, y: 8)
-        )
+        .padding(.horizontal, 15)
+        .frame(minHeight: 52)
+        .background(DocScanStyle.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
         .overlay {
-            Capsule()
+            RoundedRectangle(cornerRadius: 15, style: .continuous)
                 .stroke(DocScanStyle.border, lineWidth: 1)
         }
+        .shadow(color: DocScanStyle.shadow.opacity(0.7), radius: 10, x: 0, y: 5)
     }
 }
 
 private struct DocumentFilterSummary: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     let resultSummary: String
     let hasActiveFilter: Bool
     @Binding var selectedCategory: DocumentCategory
     let clearAction: () -> Void
 
     var body: some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 10) {
+                    resultLabel
+                    filterControls
+                }
+            } else {
+                HStack(spacing: 10) {
+                    resultLabel
+                    Spacer(minLength: 8)
+                    filterControls
+                }
+            }
+        }
+    }
+
+    private var resultLabel: some View {
+        Text(resultSummary)
+            .font(.footnote.weight(.medium))
+            .foregroundStyle(DocScanStyle.secondaryInk)
+    }
+
+    private var filterControls: some View {
         HStack(spacing: 10) {
-            Text(resultSummary)
-                .font(.footnote)
-                .foregroundStyle(DocScanStyle.secondaryInk)
-                .lineLimit(1)
-
-            Spacer(minLength: 8)
-
             CategoryFilterMenu(selectedCategory: $selectedCategory)
 
             if hasActiveFilter {
@@ -258,15 +379,18 @@ private struct CategoryFilterMenu: View {
             }
         } label: {
             HStack(spacing: 6) {
+                Image(systemName: "line.3.horizontal.decrease")
+                    .font(.caption.weight(.semibold))
                 Text(selectedCategory.rawValue)
                 Image(systemName: "chevron.down")
-                    .font(.caption.weight(.semibold))
+                    .font(.caption2.weight(.bold))
             }
             .font(.subheadline.weight(.medium))
             .foregroundStyle(DocScanStyle.ink)
             .padding(.horizontal, 12)
-            .frame(height: 34)
-            .background(DocScanStyle.selectedSurface, in: Capsule())
+            .padding(.vertical, 6)
+            .frame(minHeight: 36)
+            .background(DocScanStyle.surface, in: Capsule())
             .overlay {
                 Capsule()
                     .stroke(DocScanStyle.strongBorder, lineWidth: 1)

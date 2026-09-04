@@ -6,51 +6,101 @@
 import SwiftUI
 
 struct DocumentRow: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     let document: ScannedDocument
     let searchText: String
 
     var body: some View {
-        HStack(spacing: 0) {
-            RoundedRectangle(cornerRadius: 2, style: .continuous)
-                .fill(DocScanStyle.categoryTint(for: document.category))
-                .frame(width: 4)
-                .padding(.vertical, 6)
-                .padding(.trailing, 12)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(alignment: .top, spacing: 14) {
+                        thumbnail
+                        documentInfo(titleLineLimit: 3)
+                    }
 
-            thumbnail
+                    VStack(alignment: .leading, spacing: 8) {
+                        categoryBadge
+                        fileStatus
+                    }
 
-            VStack(alignment: .leading, spacing: 5) {
-                Text(document.title)
-                    .font(.headline)
-                    .foregroundStyle(DocScanStyle.ink)
-                    .lineLimit(1)
+                    if hasSearchQuery {
+                        searchSnippet
+                    }
+                }
+            } else {
+                HStack(alignment: .top, spacing: 14) {
+                    thumbnail
 
-                Text(metadata)
-                    .font(.caption)
-                    .foregroundStyle(DocScanStyle.secondaryInk)
-                    .lineLimit(1)
+                    VStack(alignment: .leading, spacing: 7) {
+                        documentInfo(titleLineLimit: 1)
 
-                if hasSearchQuery {
-                    Text(snippet)
-                        .font(.subheadline)
-                        .foregroundStyle(DocScanStyle.secondaryInk)
-                    .lineLimit(2)
+                        HStack(spacing: 8) {
+                            categoryBadge
+                            fileStatus
+                        }
+
+                        if hasSearchQuery {
+                            searchSnippet
+                        }
+                    }
+                    .padding(.top, 2)
+
+                    Spacer(minLength: 8)
                 }
             }
-            .padding(.leading, 12)
-
-            Spacer(minLength: 8)
         }
-        .padding(12)
+        .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(DocScanStyle.surface)
-                .shadow(color: DocScanStyle.shadow.opacity(0.18), radius: 8, x: 0, y: 4)
+                .shadow(color: DocScanStyle.shadow, radius: 12, x: 0, y: 6)
         )
         .overlay {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(DocScanStyle.border, lineWidth: 1)
         }
+    }
+
+    private func documentInfo(titleLineLimit: Int) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(document.title)
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(DocScanStyle.ink)
+                .lineLimit(titleLineLimit)
+
+            Text(metadata)
+                .font(.caption)
+                .foregroundStyle(DocScanStyle.secondaryInk)
+                .lineLimit(2)
+        }
+    }
+
+    private var categoryBadge: some View {
+        Text(document.category)
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(DocScanStyle.secondaryInk)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .frame(minHeight: 24)
+            .background(DocScanStyle.mutedSurface, in: Capsule())
+    }
+
+    private var fileStatus: some View {
+        Label(
+            document.filesExportedAt == nil ? "Preparing Files copy" : "Saved in Files",
+            systemImage: document.filesExportedAt == nil ? "clock" : "checkmark.circle.fill"
+        )
+        .font(.caption2.weight(.medium))
+        .foregroundStyle(document.filesExportedAt == nil ? DocScanStyle.tertiaryInk : DocScanStyle.blue)
+    }
+
+    private var searchSnippet: some View {
+        Text(snippet)
+            .font(.subheadline)
+            .foregroundStyle(DocScanStyle.secondaryInk)
+            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 4 : 2)
     }
 
     private var thumbnail: some View {
@@ -66,23 +116,23 @@ struct DocumentRow: View {
                     .saturation(0)
                     .contrast(1.18)
                     .brightness(0.03)
-                    .frame(width: 58, height: 74)
-                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .frame(width: 60, height: 78)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             } else {
                 Image(systemName: "doc.viewfinder")
                     .font(.title2)
                     .foregroundStyle(DocScanStyle.secondaryInk)
             }
         }
-        .frame(width: 58, height: 74)
+        .frame(width: 60, height: 78)
         .overlay {
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .stroke(DocScanStyle.border, lineWidth: 1)
         }
     }
 
     private var metadata: String {
-        "\(document.createdAt.formatted(date: .abbreviated, time: .omitted)) | \(document.pageCount) page\(document.pageCount == 1 ? "" : "s") | \(document.category)"
+        "\(document.createdAt.formatted(date: .abbreviated, time: .omitted))  ·  \(document.pageCount) page\(document.pageCount == 1 ? "" : "s")"
     }
 
     private var hasSearchQuery: Bool {
