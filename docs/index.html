@@ -3,33 +3,38 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DocScan - Free Open Source Document Scanner</title>
-  <meta name="description" content="DocScan is a clean, free, open source iPhone and iPad app for scanning paper into searchable, organized documents.">
-  <meta property="og:title" content="DocScan">
-  <meta property="og:description" content="A clean, free, open source scanner for turning paper into searchable documents.">
-  <meta property="og:image" content="https://tmoreton.github.io/docscan/assets/docscan-hero.png">
+  <meta name="theme-color" content="#f4f5f7">
+  <title>PaperIndex — Scan paper. Find anything.</title>
+  <meta name="description" content="PaperIndex turns receipts, statements, forms, and notes into a calm, searchable archive on iPhone and iPad.">
+  <meta property="og:title" content="PaperIndex — Paper, indexed.">
+  <meta property="og:description" content="Scan paper, recognize its text, and keep a clear copy in Files.">
+  <meta property="og:image" content="https://paperindex.tmoreton89.chatgpt.site/assets/paperindex-og.png">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://tmoreton.github.io/docscan/">
+  <meta property="og:url" content="https://paperindex.tmoreton89.chatgpt.site/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PaperIndex — Paper, indexed.">
+  <meta name="twitter:description" content="Scan paper, recognize its text, and keep a clear copy in Files.">
+  <meta name="twitter:image" content="https://paperindex.tmoreton89.chatgpt.site/assets/paperindex-og.png">
   <link rel="icon" href="assets/docscan-icon.png">
-  <link rel="preload" href="assets/docscan-hero.png" as="image">
   <style>
     :root {
       color-scheme: light;
-      --canvas: #f2f6f6;
-      --surface: #feffff;
-      --ink: #131519;
-      --muted: #646d76;
-      --blue: #005dc2;
-      --teal: #008579;
-      --orange: #cd5b0e;
-      --rose: #ae1d46;
-      --line: rgba(31, 36, 43, 0.14);
-      --shadow: 0 22px 70px rgba(22, 28, 36, 0.12);
+      --canvas: #f4f5f7;
+      --surface: #ffffff;
+      --ink: #111317;
+      --muted: #5d6573;
+      --blue: #0954cc;
+      --blue-dark: #073f99;
+      --blue-wash: #e9f1fe;
+      --line: rgba(17, 19, 23, 0.12);
+      --line-strong: rgba(17, 19, 23, 0.2);
+      --shadow-sm: 0 12px 32px rgba(18, 28, 45, 0.08);
+      --shadow-lg: 0 36px 90px rgba(18, 28, 45, 0.14);
+      --radius-md: 24px;
+      --radius-lg: 34px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html {
       scroll-behavior: smooth;
@@ -43,508 +48,845 @@
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
       line-height: 1.5;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
     a {
       color: inherit;
       text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 40px));
+      margin-inline: auto;
     }
 
     .site-header {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 10;
-      border-bottom: 1px solid rgba(31, 36, 43, 0.08);
-      background: rgba(242, 246, 246, 0.78);
-      backdrop-filter: blur(18px);
+      inset: 0 0 auto;
+      z-index: 20;
+      border-bottom: 1px solid rgba(17, 19, 23, 0.08);
+      background: rgba(244, 245, 247, 0.84);
+      backdrop-filter: blur(20px) saturate(150%);
     }
 
     .nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      width: min(1120px, calc(100% - 40px));
-      height: 64px;
-      margin: 0 auto;
+      min-height: 68px;
     }
 
     .brand {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      font-weight: 750;
+      font-size: 1rem;
+      font-weight: 780;
+      letter-spacing: -0.02em;
     }
 
     .brand img {
-      width: 34px;
-      height: 34px;
-      border-radius: 8px;
-      box-shadow: 0 6px 18px rgba(0, 93, 194, 0.18);
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+      box-shadow: var(--shadow-sm);
     }
 
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 18px;
+      gap: 24px;
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 650;
     }
 
-    .nav-links a:hover {
-      color: var(--ink);
+    .nav-links a { transition: color 160ms ease; }
+
+    .nav-links a:hover,
+    .nav-links a:focus-visible { color: var(--ink); }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      min-height: 40px;
+      padding: 0 15px;
+      color: white !important;
+      border-radius: 999px;
+      background: var(--ink);
     }
 
     .hero {
-      min-height: 88svh;
-      display: grid;
-      align-items: center;
-      padding: 112px 0 72px;
-      background-image:
-        linear-gradient(90deg, rgba(242, 246, 246, 0.99) 0%, rgba(242, 246, 246, 0.93) 42%, rgba(242, 246, 246, 0.15) 72%),
-        url("assets/docscan-hero.png");
-      background-size: cover;
-      background-position: center;
+      position: relative;
+      min-height: 820px;
+      padding: 148px 0 92px;
+      overflow: hidden;
       border-bottom: 1px solid var(--line);
     }
 
-    .hero-inner {
-      width: min(1120px, calc(100% - 40px));
-      margin: 0 auto;
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 680px;
+      height: 680px;
+      top: 36px;
+      right: -180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(9, 84, 204, 0.13), rgba(9, 84, 204, 0) 68%);
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.04fr) minmax(360px, 0.76fr);
+      gap: clamp(50px, 8vw, 112px);
+      align-items: center;
     }
 
     .eyebrow {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      margin: 0 0 18px;
+      margin: 0 0 20px;
       color: var(--blue);
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: 800;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
     }
 
     .eyebrow::before {
       content: "";
-      width: 24px;
+      width: 25px;
       height: 3px;
       border-radius: 999px;
-      background: linear-gradient(90deg, var(--blue), var(--teal), var(--orange));
+      background: var(--blue);
     }
 
-    h1,
-    h2,
-    h3,
-    p {
-      margin-top: 0;
-    }
+    h1, h2, h3, p { margin-top: 0; }
 
     h1 {
-      max-width: 620px;
-      margin-bottom: 18px;
-      font-size: 8.75rem;
-      line-height: 0.86;
-      font-weight: 850;
+      max-width: 760px;
+      margin-bottom: 26px;
+      font-size: clamp(4.5rem, 9vw, 8rem);
+      line-height: 0.88;
+      font-weight: 860;
+      letter-spacing: -0.072em;
+    }
+
+    h1 span {
+      display: block;
+      color: var(--blue);
     }
 
     .hero-copy {
-      max-width: 570px;
+      max-width: 620px;
       margin-bottom: 30px;
-      color: #2f3740;
-      font-size: 1.38rem;
+      color: #303743;
+      font-size: clamp(1.12rem, 2vw, 1.35rem);
+      line-height: 1.55;
     }
 
     .hero-actions {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
+      margin-bottom: 30px;
     }
 
     .button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 50px;
+      gap: 9px;
+      min-height: 54px;
       padding: 0 20px;
       border: 1px solid var(--line);
-      border-radius: 999px;
+      border-radius: 15px;
       font-weight: 750;
-      box-shadow: 0 14px 34px rgba(22, 28, 36, 0.10);
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
     }
+
+    .button:hover,
+    .button:focus-visible { transform: translateY(-2px); }
 
     .button.primary {
       color: white;
-      border-color: transparent;
-      background: linear-gradient(135deg, var(--blue), var(--teal));
+      border-color: var(--blue);
+      background: var(--blue);
+      box-shadow: 0 16px 38px rgba(9, 84, 204, 0.22);
+    }
+
+    .button.primary:hover,
+    .button.primary:focus-visible {
+      background: var(--blue-dark);
+      box-shadow: 0 20px 44px rgba(9, 84, 204, 0.28);
     }
 
     .button.secondary {
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hero-notes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 20px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 620;
+    }
+
+    .hero-notes span::before {
+      content: "✓";
+      margin-right: 7px;
+      color: var(--blue);
+      font-weight: 850;
+    }
+
+    .product-visual {
+      position: relative;
+      min-height: 590px;
+    }
+
+    .phone {
+      position: absolute;
+      top: 0;
+      right: 12px;
+      width: min(100%, 390px);
+      padding: 14px;
+      border: 2px solid rgba(17, 19, 23, 0.86);
+      border-radius: 52px;
+      background: #15171b;
+      box-shadow: var(--shadow-lg);
+      transform: rotate(2deg);
+    }
+
+    .phone-screen {
+      min-height: 570px;
+      padding: 24px 16px 18px;
+      border-radius: 39px;
+      background: var(--canvas);
+      overflow: hidden;
+    }
+
+    .phone-status {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      padding: 0 7px;
+      font-size: 0.72rem;
+      font-weight: 770;
+    }
+
+    .app-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .app-title-row h3 {
+      margin: 0;
+      font-size: 2rem;
+      letter-spacing: -0.05em;
+    }
+
+    .app-title-row p {
+      margin: 1px 0 0;
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+
+    .scan-pill {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      color: white;
+      border-radius: 999px;
+      background: var(--blue);
+      font-size: 0.78rem;
+      font-weight: 760;
+    }
+
+    .search-field {
+      margin-bottom: 14px;
+      padding: 13px 15px;
+      color: #8a909a;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: white;
+      font-size: 0.8rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .filter-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 2px 12px;
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 650;
+    }
+
+    .filter-pill {
+      padding: 7px 11px;
       color: var(--ink);
-      background: rgba(254, 255, 255, 0.82);
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: white;
     }
 
-    main section {
-      padding: 82px 0;
+    .document-card {
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 12px;
+      margin-top: 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: white;
+      box-shadow: var(--shadow-sm);
     }
 
-    .section-inner {
-      width: min(1120px, calc(100% - 40px));
-      margin: 0 auto;
+    .paper-thumb {
+      height: 68px;
+      padding: 10px 7px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: linear-gradient(#fff, #fafafa);
     }
+
+    .paper-thumb i {
+      display: block;
+      height: 3px;
+      margin-bottom: 5px;
+      border-radius: 999px;
+      background: #b9bec6;
+    }
+
+    .paper-thumb i:first-child {
+      width: 70%;
+      background: #16191f;
+    }
+
+    .document-card strong {
+      display: block;
+      margin: 1px 0 4px;
+      font-size: 0.82rem;
+      line-height: 1.25;
+    }
+
+    .document-meta {
+      color: var(--muted);
+      font-size: 0.66rem;
+    }
+
+    .document-status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 8px;
+      color: var(--blue);
+      font-size: 0.67rem;
+      font-weight: 720;
+    }
+
+    .document-status b {
+      display: inline-grid;
+      width: 17px;
+      height: 17px;
+      place-items: center;
+      color: white;
+      border-radius: 50%;
+      background: var(--blue);
+      font-size: 0.6rem;
+    }
+
+    .save-popover {
+      position: absolute;
+      left: -48px;
+      bottom: 48px;
+      width: 248px;
+      padding: 16px;
+      border: 1px solid rgba(9, 84, 204, 0.2);
+      border-radius: 18px;
+      background: var(--blue-wash);
+      box-shadow: 0 24px 62px rgba(18, 28, 45, 0.2);
+      transform: rotate(-3deg);
+    }
+
+    .save-popover strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.92rem;
+    }
+
+    .save-popover span {
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .save-popover::before {
+      content: "✓";
+      display: grid;
+      width: 28px;
+      height: 28px;
+      margin-bottom: 10px;
+      place-items: center;
+      color: white;
+      border-radius: 50%;
+      background: var(--blue);
+      font-weight: 850;
+    }
+
+    .trust-bar {
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .trust-items {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      min-height: 94px;
+      align-items: center;
+    }
+
+    .trust-items span {
+      padding: 0 26px;
+      color: var(--muted);
+      border-right: 1px solid var(--line);
+      font-size: 0.86rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .trust-items span:last-child { border-right: 0; }
+
+    section.content-section { padding: 112px 0; }
 
     .section-heading {
-      max-width: 720px;
-      margin-bottom: 34px;
+      max-width: 760px;
+      margin-bottom: 48px;
     }
 
     h2 {
-      margin-bottom: 12px;
-      font-size: 4.25rem;
-      line-height: 0.98;
-      font-weight: 820;
+      margin-bottom: 18px;
+      font-size: clamp(2.8rem, 6vw, 5.4rem);
+      line-height: 0.96;
+      font-weight: 835;
+      letter-spacing: -0.06em;
     }
 
-    .section-heading p,
-    .open-copy p {
+    .section-heading > p:last-child {
       color: var(--muted);
-      font-size: 1.1rem;
+      font-size: 1.08rem;
     }
 
     .feature-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
     }
 
-    .feature {
-      min-height: 230px;
-      padding: 22px;
+    .feature-card {
+      min-height: 300px;
+      padding: 26px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: var(--radius-md);
       background: var(--surface);
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-sm);
     }
 
-    .feature-marker {
-      width: 36px;
-      height: 5px;
-      margin-bottom: 28px;
-      border-radius: 999px;
-      background: var(--blue);
+    .feature-number {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      margin-bottom: 64px;
+      place-items: center;
+      color: var(--blue);
+      border-radius: 11px;
+      background: var(--blue-wash);
+      font-size: 0.78rem;
+      font-weight: 820;
     }
 
-    .feature:nth-child(2) .feature-marker {
-      background: var(--teal);
-    }
-
-    .feature:nth-child(3) .feature-marker {
-      background: var(--orange);
-    }
-
-    .feature:nth-child(4) .feature-marker {
-      background: var(--rose);
-    }
-
-    h3 {
+    .feature-card h3,
+    .step-copy h3 {
       margin-bottom: 10px;
-      font-size: 1.18rem;
-      line-height: 1.15;
+      font-size: 1.35rem;
+      letter-spacing: -0.035em;
     }
 
-    .feature p {
+    .feature-card p,
+    .step-copy p {
       margin-bottom: 0;
       color: var(--muted);
     }
 
-    .open-source {
-      background: #15181d;
+    .workflow-section {
       color: white;
+      background: var(--ink);
     }
 
-    .open-source .eyebrow {
-      color: #7cc7ff;
+    .workflow-section .eyebrow { color: #78a9f7; }
+
+    .workflow-section .section-heading > p:last-child {
+      color: rgba(255, 255, 255, 0.62);
     }
 
-    .open-source .section-inner {
+    .steps { border-top: 1px solid rgba(255, 255, 255, 0.15); }
+
+    .step {
       display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
-      gap: 42px;
+      grid-template-columns: 84px 1fr auto;
+      gap: 28px;
+      align-items: start;
+      padding: 30px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .step-index {
+      color: #78a9f7;
+      font-size: 0.82rem;
+      font-weight: 820;
+    }
+
+    .step-copy { max-width: 630px; }
+
+    .step-copy p { color: rgba(255, 255, 255, 0.62); }
+
+    .step-tag {
+      padding: 7px 11px;
+      color: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 730;
+    }
+
+    .save-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(400px, 1.1fr);
+      gap: clamp(42px, 8vw, 110px);
       align-items: center;
     }
 
-    .open-copy p {
-      color: rgba(255, 255, 255, 0.72);
-    }
+    .save-grid .section-heading { margin-bottom: 0; }
 
-    .repo-panel {
-      padding: 28px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.06);
-    }
-
-    .repo-panel strong {
-      display: block;
-      margin-bottom: 12px;
-      font-size: 1.2rem;
-    }
-
-    .repo-panel p {
-      margin-bottom: 22px;
-      color: rgba(255, 255, 255, 0.70);
-    }
-
-    .repo-panel .button {
-      box-shadow: none;
-    }
-
-    .workflow {
-      background: #eaf1f1;
-    }
-
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .step {
+    .storage-card {
       padding: 24px;
-      border-top: 4px solid var(--blue);
-      background: rgba(254, 255, 255, 0.72);
-      border-radius: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: white;
+      box-shadow: var(--shadow-lg);
     }
 
-    .step:nth-child(2) {
-      border-top-color: var(--teal);
+    .storage-label {
+      margin-bottom: 20px;
+      color: #9aa1ac;
+      font-size: 0.72rem;
+      font-weight: 820;
+      letter-spacing: 0.12em;
     }
 
-    .step:nth-child(3) {
-      border-top-color: var(--orange);
+    .storage-row {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 13px;
+      padding: 18px 0;
+      border-top: 1px solid var(--line);
     }
 
-    .step span {
-      display: block;
-      margin-bottom: 34px;
+    .storage-row:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .check {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      color: white;
+      border-radius: 50%;
+      background: var(--blue);
+      font-size: 0.78rem;
+      font-weight: 850;
+    }
+
+    .storage-row strong,
+    .storage-row span { display: block; }
+
+    .storage-row strong {
+      margin-bottom: 2px;
+      font-size: 1.02rem;
+    }
+
+    .storage-row span {
       color: var(--muted);
-      font-size: 0.88rem;
-      font-weight: 800;
-      text-transform: uppercase;
+      font-size: 0.9rem;
+    }
+
+    .storage-button {
+      margin-top: 8px;
+      padding: 15px;
+      color: white;
+      border-radius: 14px;
+      background: var(--blue);
+      text-align: center;
+      font-weight: 760;
+    }
+
+    .open-source {
+      padding: 88px 0;
+      border-top: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .open-panel {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 40px;
+      align-items: center;
+      padding: 44px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--canvas);
+    }
+
+    .open-panel h2 {
+      max-width: 760px;
+      margin-bottom: 14px;
+      font-size: clamp(2.3rem, 4.7vw, 4.25rem);
+    }
+
+    .open-panel p {
+      max-width: 680px;
+      margin-bottom: 0;
+      color: var(--muted);
     }
 
     footer {
-      padding: 28px 0;
-      border-top: 1px solid var(--line);
+      padding: 30px 0;
       color: var(--muted);
-      background: var(--canvas);
-      font-size: 0.95rem;
+      border-top: 1px solid var(--line);
+      font-size: 0.88rem;
     }
 
-    footer .section-inner {
+    .footer-row {
       display: flex;
       justify-content: space-between;
-      gap: 18px;
+      gap: 24px;
     }
 
-    @media (max-width: 860px) {
-      .nav {
-        width: calc(100% - 28px);
-        max-width: 680px;
+    @media (max-width: 900px) {
+      .hero { min-height: auto; }
+
+      .hero-grid,
+      .save-grid { grid-template-columns: 1fr; }
+
+      .product-visual {
+        width: min(100%, 480px);
+        min-height: 620px;
+        margin-inline: auto;
       }
 
-      .nav-links a:first-child {
-        display: none;
+      .feature-grid { grid-template-columns: 1fr; }
+      .feature-card { min-height: auto; }
+      .feature-number { margin-bottom: 38px; }
+      .trust-items { grid-template-columns: repeat(2, 1fr); }
+      .trust-items span:nth-child(2) { border-right: 0; }
+
+      .trust-items span {
+        display: grid;
+        min-height: 70px;
+        place-items: center;
+        border-bottom: 1px solid var(--line);
       }
 
-      .hero {
-        min-height: 90svh;
-        padding: 100px 0 64px;
-        background-image:
-          linear-gradient(180deg, rgba(242, 246, 246, 0.99) 0%, rgba(242, 246, 246, 0.90) 52%, rgba(242, 246, 246, 0.42) 100%),
-          url("assets/docscan-hero.png");
-        background-position: 62% center;
+      .trust-items span:nth-child(3),
+      .trust-items span:nth-child(4) { border-bottom: 0; }
+    }
+
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 28px, 520px); }
+      .nav-links a:not(.nav-cta) { display: none; }
+      .hero { padding: 122px 0 68px; }
+      h1 { font-size: clamp(4rem, 21vw, 6rem); }
+      .hero-actions { flex-direction: column; }
+      .button { width: 100%; }
+      .product-visual { min-height: 570px; }
+
+      .phone {
+        right: -12px;
+        width: calc(100% - 20px);
       }
 
-      .hero-inner,
-      .section-inner {
-        width: calc(100% - 28px);
-        max-width: 680px;
+      .save-popover {
+        left: -4px;
+        bottom: 24px;
       }
 
-      h1 {
-        font-size: 5.8rem;
-      }
+      section.content-section { padding: 80px 0; }
+      .step { grid-template-columns: 44px 1fr; }
+      .step-tag { display: none; }
 
-      .hero-copy {
-        max-width: 480px;
-        font-size: 1.2rem;
-      }
-
-      h2 {
-        font-size: 3.2rem;
-      }
-
-      .feature-grid,
-      .steps,
-      .open-source .section-inner {
+      .open-panel {
         grid-template-columns: 1fr;
+        padding: 28px;
       }
 
-      main section {
-        padding: 64px 0;
-      }
-
-      footer .section-inner {
-        flex-direction: column;
-      }
+      .footer-row { flex-direction: column; }
     }
 
-    @media (max-width: 520px) {
-      .nav-links {
-        gap: 12px;
-        font-size: 0.88rem;
-      }
-
-      .nav-links a:not(:last-child) {
-        display: none;
-      }
-
-      .brand span {
-        display: none;
-      }
-
-      h1 {
-        font-size: 4.1rem;
-      }
-
-      h2 {
-        font-size: 2.5rem;
-      }
-
-      .hero-actions {
-        flex-direction: column;
-        align-items: stretch;
-        max-width: 348px;
-      }
-
-      .button {
-        width: 100%;
-      }
-
-      .hero-copy {
-        max-width: 342px;
-      }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .button, .nav-links a { transition: none; }
     }
   </style>
 </head>
 <body>
   <header class="site-header">
-    <nav class="nav" aria-label="Primary">
-      <a class="brand" href="#top" aria-label="DocScan home">
+    <nav class="nav shell" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="PaperIndex home">
         <img src="assets/docscan-icon.png" alt="">
-        <span>DocScan</span>
+        <span>PaperIndex</span>
       </a>
       <div class="nav-links">
-        <a href="#benefits">Benefits</a>
-        <a href="#open-source">Open source</a>
-        <a href="https://github.com/tmoreton/docscan">GitHub</a>
+        <a href="#features">Features</a>
+        <a href="#workflow">How it works</a>
+        <a href="https://github.com/tmoreton/docscan">Open source</a>
+        <a class="nav-cta" href="https://github.com/tmoreton/docscan">View on GitHub</a>
       </div>
     </nav>
   </header>
 
   <main id="top">
     <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-inner">
-        <p class="eyebrow">Free open source scanner</p>
-        <h1 id="hero-title">DocScan</h1>
-        <p class="hero-copy">A clean iPhone and iPad app for turning paper into searchable documents, with automatic organization and simple exports to Files.</p>
-        <div class="hero-actions">
-          <a class="button primary" href="https://github.com/tmoreton/docscan">View on GitHub</a>
-          <a class="button secondary" href="#benefits">See benefits</a>
+      <div class="hero-grid shell">
+        <div>
+          <p class="eyebrow">A calm place for paper</p>
+          <h1 id="hero-title">Paper,<span>indexed.</span></h1>
+          <p class="hero-copy">Scan receipts, statements, forms, and notes. PaperIndex recognizes the text, organizes the result, and makes it clear where every copy lives.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="https://github.com/tmoreton/docscan">Explore the source <span aria-hidden="true">↗</span></a>
+            <a class="button secondary" href="#workflow">See the workflow</a>
+          </div>
+          <div class="hero-notes" aria-label="Product highlights">
+            <span>On-device OCR</span>
+            <span>No account required</span>
+            <span>iPhone and iPad</span>
+          </div>
+        </div>
+
+        <div class="product-visual" aria-label="PaperIndex document archive preview">
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="phone-status"><span>9:41</span><span>● Wi-Fi ▰</span></div>
+              <div class="app-title-row">
+                <div><h3>Documents</h3><p>3 saved and searchable</p></div>
+                <span class="scan-pill">▣&nbsp; Scan</span>
+              </div>
+              <div class="search-field">⌕ &nbsp; Search titles or recognized text</div>
+              <div class="filter-row"><span>3 documents</span><span class="filter-pill">All⌄</span></div>
+
+              <div class="document-card">
+                <div class="paper-thumb"><i></i><i></i><i></i><i></i></div>
+                <div><strong>September utility statement</strong><div class="document-meta">Sep 4, 2026 &nbsp;·&nbsp; 1 page</div><div class="document-status"><b>✓</b> Saved in Files</div></div>
+              </div>
+              <div class="document-card">
+                <div class="paper-thumb"><i></i><i></i><i></i><i></i></div>
+                <div><strong>Harbor Dental receipt</strong><div class="document-meta">Aug 27, 2026 &nbsp;·&nbsp; 1 page</div><div class="document-status"><b>✓</b> Saved in Files</div></div>
+              </div>
+              <div class="document-card">
+                <div class="paper-thumb"><i></i><i></i><i></i><i></i></div>
+                <div><strong>Home insurance renewal</strong><div class="document-meta">Aug 19, 2026 &nbsp;·&nbsp; 1 page</div><div class="document-status"><b>✓</b> Saved in Files</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="save-popover"><strong>Saved and searchable</strong><span>Files · On My iPhone</span></div>
         </div>
       </div>
     </section>
 
-    <section id="benefits">
-      <div class="section-inner">
+    <div class="trust-bar" aria-label="PaperIndex principles">
+      <div class="trust-items shell">
+        <span>Native document capture</span>
+        <span>Search recognized text</span>
+        <span>Clear Files exports</span>
+        <span>Free and open source</span>
+      </div>
+    </div>
+
+    <section class="content-section" id="features">
+      <div class="shell">
         <div class="section-heading">
-          <p class="eyebrow">Why it helps</p>
-          <h2>Paper goes in. Searchable files come out.</h2>
-          <p>DocScan focuses on the routine job: capture a document, read its text, categorize it, and keep the result easy to find later.</p>
+          <p class="eyebrow">Less filing. More finding.</p>
+          <h2>Your paper trail, without the clutter.</h2>
+          <p>PaperIndex gives the important parts of document scanning more clarity: one capture action, searchable text, useful organization, and a save state you can trust.</p>
         </div>
         <div class="feature-grid">
-          <article class="feature">
-            <div class="feature-marker"></div>
-            <h3>Searchable scans</h3>
-            <p>OCR turns scanned pages into selectable text, so receipts, statements, forms, and notes are easier to locate.</p>
-          </article>
-          <article class="feature">
-            <div class="feature-marker"></div>
-            <h3>Automatic organization</h3>
-            <p>Documents are named, summarized, and grouped into practical categories such as receipts, invoices, medical, tax, and travel.</p>
-          </article>
-          <article class="feature">
-            <div class="feature-marker"></div>
-            <h3>Exports to Files</h3>
-            <p>Each scan can be written to Apple Files with the document image, recognized text, and generated metadata kept together.</p>
-          </article>
-          <article class="feature">
-            <div class="feature-marker"></div>
-            <h3>No account required</h3>
-            <p>The app keeps the scanner workflow direct, without subscriptions, sign-in screens, or a cloud dashboard to manage.</p>
-          </article>
+          <article class="feature-card"><span class="feature-number">01</span><h3>Search what the page says</h3><p>On-device text recognition makes names, totals, dates, and details findable—not just the document title.</p></article>
+          <article class="feature-card"><span class="feature-number">02</span><h3>Understand it at a glance</h3><p>Automatic titles, summaries, and practical categories turn a camera roll of pages into a usable archive.</p></article>
+          <article class="feature-card"><span class="feature-number">03</span><h3>Know where it was saved</h3><p>Every document clearly shows its PaperIndex and Files status, so saving never ends in uncertainty.</p></article>
         </div>
       </div>
     </section>
 
-    <section class="open-source" id="open-source">
-      <div class="section-inner">
-        <div class="open-copy">
-          <p class="eyebrow">Free and inspectable</p>
-          <h2>Open source software should feel polished too.</h2>
-          <p>DocScan is built as a focused native app: simple enough to understand, useful enough for real paperwork, and open enough for anyone to inspect or improve.</p>
-        </div>
-        <aside class="repo-panel" aria-label="GitHub repository">
-          <strong>Source on GitHub</strong>
-          <p>Follow development, review the SwiftUI implementation, or fork the app for your own document workflow.</p>
-          <a class="button primary" href="https://github.com/tmoreton/docscan">Open repository</a>
-        </aside>
-      </div>
-    </section>
-
-    <section class="workflow" aria-labelledby="workflow-title">
-      <div class="section-inner">
+    <section class="content-section workflow-section" id="workflow">
+      <div class="shell">
         <div class="section-heading">
-          <p class="eyebrow">Workflow</p>
-          <h2 id="workflow-title">Built around the scan archive.</h2>
+          <p class="eyebrow">One clear flow</p>
+          <h2>From desk to archive in three steps.</h2>
+          <p>The interface stays out of the way while the useful work happens on your device.</p>
         </div>
         <div class="steps">
-          <article class="step">
-            <span>Capture</span>
-            <h3>Scan documents with the camera</h3>
-            <p>Use the native document scanner to capture clean page images quickly.</p>
-          </article>
-          <article class="step">
-            <span>Recognize</span>
-            <h3>Extract the text layer</h3>
-            <p>Readable text is saved beside the scan so documents are searchable later.</p>
-          </article>
-          <article class="step">
-            <span>Archive</span>
-            <h3>Keep files organized</h3>
-            <p>Find documents by category, title, date, or content whenever paperwork comes back up.</p>
-          </article>
+          <article class="step"><span class="step-index">01</span><div class="step-copy"><h3>Scan the pages</h3><p>Use Apple’s native document camera to capture clean, cropped pages quickly.</p></div><span class="step-tag">Capture</span></article>
+          <article class="step"><span class="step-index">02</span><div class="step-copy"><h3>Recognize and organize</h3><p>PaperIndex reads the text and produces a useful title, summary, and category.</p></div><span class="step-tag">Index</span></article>
+          <article class="step"><span class="step-index">03</span><div class="step-copy"><h3>Find it when it matters</h3><p>Search by title or page content, then open the matching copy directly in Files.</p></div><span class="step-tag">Retrieve</span></article>
         </div>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <div class="save-grid shell">
+        <div class="section-heading">
+          <p class="eyebrow">Saving, made visible</p>
+          <h2>No mystery after the shutter.</h2>
+          <p>PaperIndex shows when the scan is searchable, whether its Files copy exists, and which device location contains it.</p>
+        </div>
+        <div class="storage-card" aria-label="PaperIndex save status example">
+          <div class="storage-label">SAVED</div>
+          <div class="storage-row"><span class="check">✓</span><div><strong>PaperIndex library</strong><span>Searchable in this app</span></div></div>
+          <div class="storage-row"><span class="check">✓</span><div><strong>Files copy</strong><span>On My iPhone or iPad</span></div></div>
+          <div class="storage-button">View in Files</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="open-source">
+      <div class="open-panel shell">
+        <div>
+          <p class="eyebrow">Open by design</p>
+          <h2>A private scanner you can inspect.</h2>
+          <p>PaperIndex is a focused native SwiftUI app with on-device OCR, no required account, and source code available for review.</p>
+        </div>
+        <a class="button primary" href="https://github.com/tmoreton/docscan">Open GitHub <span aria-hidden="true">↗</span></a>
       </div>
     </section>
   </main>
 
   <footer>
-    <div class="section-inner">
-      <span>DocScan is free, open source, and built for iPhone and iPad.</span>
-      <a href="https://github.com/tmoreton/docscan">github.com/tmoreton/docscan</a>
+    <div class="footer-row shell">
+      <span>PaperIndex is built for iPhone and iPad.</span>
+      <a href="https://github.com/tmoreton/docscan">Free and open source on GitHub.</a>
     </div>
   </footer>
 </body>
