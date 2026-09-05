@@ -39,6 +39,7 @@ struct DocumentDetailView: View {
         .background(DocScanStyle.background)
         .navigationTitle(document.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .navigationBar)
         .toolbarBackground(DocScanStyle.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {

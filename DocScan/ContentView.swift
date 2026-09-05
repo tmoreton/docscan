@@ -101,10 +101,7 @@ struct ContentView: View {
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(DocScanStyle.background)
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(DocScanStyle.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar(.hidden, for: .navigationBar)
             .tint(DocScanStyle.blue)
             .navigationDestination(for: UUID.self) { documentID in
                 if let document = documents.first(where: { $0.id == documentID }) {
