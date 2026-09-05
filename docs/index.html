@@ -8,14 +8,14 @@
   <meta name="description" content="PaperIndex turns receipts, statements, forms, and notes into a calm, searchable archive on iPhone and iPad.">
   <meta property="og:title" content="PaperIndex — Paper, indexed.">
   <meta property="og:description" content="Scan paper, recognize its text, and keep a clear copy in Files.">
-  <meta property="og:image" content="https://tmoreton.github.io/docscan/assets/paperindex-og.png">
+  <meta property="og:image" content="https://tmoreton.github.io/PaperIndex/assets/paperindex-og.png">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://tmoreton.github.io/docscan/">
+  <meta property="og:url" content="https://tmoreton.github.io/PaperIndex/">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="PaperIndex — Paper, indexed.">
   <meta name="twitter:description" content="Scan paper, recognize its text, and keep a clear copy in Files.">
-  <meta name="twitter:image" content="https://tmoreton.github.io/docscan/assets/paperindex-og.png">
-  <link rel="canonical" href="https://tmoreton.github.io/docscan/">
+  <meta name="twitter:image" content="https://tmoreton.github.io/PaperIndex/assets/paperindex-og.png">
+  <link rel="canonical" href="https://tmoreton.github.io/PaperIndex/">
   <link rel="icon" href="assets/docscan-icon.png">
   <style>
     :root {
@@ -687,6 +687,13 @@
       gap: 24px;
     }
 
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px 20px;
+    }
+
     @media (max-width: 900px) {
       .hero { min-height: auto; }
 
@@ -763,8 +770,9 @@
       <div class="nav-links">
         <a href="#features">Features</a>
         <a href="#workflow">How it works</a>
-        <a href="https://github.com/tmoreton/docscan">Open source</a>
-        <a class="nav-cta" href="https://github.com/tmoreton/docscan">View on GitHub</a>
+        <a href="privacy/">Privacy</a>
+        <a href="https://github.com/tmoreton/PaperIndex">Source</a>
+        <a class="nav-cta" href="https://github.com/tmoreton/PaperIndex">View on GitHub</a>
       </div>
     </nav>
   </header>
@@ -777,7 +785,7 @@
           <h1 id="hero-title">Paper,<span>indexed.</span></h1>
           <p class="hero-copy">Scan receipts, statements, forms, and notes. PaperIndex recognizes the text, organizes the result, and makes it clear where every copy lives.</p>
           <div class="hero-actions">
-            <a class="button primary" href="https://github.com/tmoreton/docscan">Explore the source <span aria-hidden="true">↗</span></a>
+            <a class="button primary" href="https://github.com/tmoreton/PaperIndex">Explore the source <span aria-hidden="true">↗</span></a>
             <a class="button secondary" href="#workflow">See the workflow</a>
           </div>
           <div class="hero-notes" aria-label="Product highlights">
@@ -879,7 +887,7 @@
           <h2>A private scanner you can inspect.</h2>
           <p>PaperIndex is a focused native SwiftUI app with on-device OCR, no required account, and source code available for review.</p>
         </div>
-        <a class="button primary" href="https://github.com/tmoreton/docscan">Open GitHub <span aria-hidden="true">↗</span></a>
+        <a class="button primary" href="https://github.com/tmoreton/PaperIndex">Open GitHub <span aria-hidden="true">↗</span></a>
       </div>
     </section>
   </main>
@@ -887,7 +895,7 @@
   <footer>
     <div class="footer-row shell">
       <span>PaperIndex is built for iPhone and iPad.</span>
-      <a href="https://github.com/tmoreton/docscan">Free and open source on GitHub.</a>
+      <span class="footer-links"><a href="privacy/">Privacy</a><a href="terms/">Terms</a><a href="https://github.com/tmoreton/PaperIndex">GitHub</a></span>
     </div>
   </footer>
 </body>

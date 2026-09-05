@@ -167,6 +167,11 @@ struct ContentView: View {
     private func configurePreviewStateIfRequested() {
         let arguments = ProcessInfo.processInfo.arguments
 
+        if let searchArgumentIndex = arguments.firstIndex(of: "-preview-search"),
+           arguments.indices.contains(searchArgumentIndex + 1) {
+            searchText = arguments[searchArgumentIndex + 1]
+        }
+
         if arguments.contains("-show-processing-preview") {
             processingPageCount = 3
             isProcessingScan = true

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f5f7">
+  <title>Privacy Policy — PaperIndex</title>
+  <meta name="description" content="How PaperIndex processes, stores, and protects scanned documents.">
+  <meta property="og:title" content="Privacy Policy — PaperIndex">
+  <meta property="og:description" content="PaperIndex processes documents on-device and has no developer-operated data service.">
+  <meta property="og:image" content="https://tmoreton.github.io/PaperIndex/assets/paperindex-og.png">
+  <meta property="og:url" content="https://tmoreton.github.io/PaperIndex/privacy/">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Privacy Policy — PaperIndex">
+  <meta name="twitter:description" content="PaperIndex processes documents on-device and has no developer-operated data service.">
+  <meta name="twitter:image" content="https://tmoreton.github.io/PaperIndex/assets/paperindex-og.png">
+  <link rel="canonical" href="https://tmoreton.github.io/PaperIndex/privacy/">
+  <link rel="icon" href="../assets/docscan-icon.png">
+  <link rel="stylesheet" href="../legal.css">
+</head>
+<body>
+  <header>
+    <nav class="shell" aria-label="Policy navigation">
+      <a class="brand" href="../"><img src="../assets/docscan-icon.png" alt=""><span>PaperIndex</span></a>
+      <a class="back" href="../">← Back to PaperIndex</a>
+    </nav>
+  </header>
+  <main class="shell">
+    <p class="eyebrow">Your documents stay yours</p>
+    <h1>Privacy Policy</h1>
+    <p class="lede">PaperIndex processes your documents on your Apple device and does not send them to a PaperIndex-controlled server.</p>
+    <p class="effective">Effective September 5, 2026</p>
+
+    <div class="notice">
+      <strong>The short version</strong>
+      No PaperIndex account, advertising, analytics, or tracking. Scanning, OCR, organization, and search happen on-device. Optional iCloud storage is controlled by you and handled by Apple through your private Apple Account.
+    </div>
+
+    <article>
+      <section>
+        <h2>Information PaperIndex processes</h2>
+        <p>When you use PaperIndex, the app processes the pages you scan, the text recognized from those pages, document titles, categories, summaries, keywords, dates, and local storage information. This information is needed to build and search your document archive.</p>
+        <p>The PaperIndex developers do not receive this information.</p>
+      </section>
+
+      <section>
+        <h2>On-device processing</h2>
+        <p>PaperIndex uses Apple system frameworks for document capture and text recognition. OCR runs with Vision on your device. Metadata enrichment uses Apple's on-device Foundation Models on supported devices; otherwise PaperIndex uses local rules. The app does not upload scans or recognized text to an external AI service.</p>
+      </section>
+
+      <section>
+        <h2>Storage and iCloud</h2>
+        <p>PaperIndex stores its searchable library in the app's SwiftData container and writes user-visible copies to the Files app. A document export can include JPEG page images, recognized OCR text, and a document-information text file.</p>
+        <ul>
+          <li><strong>On this device:</strong> local app data and Files copies remain within the app's device storage.</li>
+          <li><strong>Optional iCloud:</strong> if iCloud is enabled for PaperIndex, Apple may sync the private SwiftData database through CloudKit and exported files through your iCloud Drive.</li>
+        </ul>
+        <p>iCloud transmission and storage are provided by Apple and governed by your Apple Account settings and Apple's terms and privacy policy. PaperIndex does not have a developer dashboard or server that can view your private CloudKit records.</p>
+      </section>
+
+      <section>
+        <h2>Permissions</h2>
+        <p>PaperIndex requests camera access only so you can scan documents. You can change camera permission in iOS or iPadOS Settings. The app does not request location, contacts, microphone, photo-library, advertising identifier, or tracking permission.</p>
+      </section>
+
+      <section>
+        <h2>Analytics, advertising, and third parties</h2>
+        <p>PaperIndex contains no advertising, analytics, tracking, crash-reporting, or third-party runtime SDKs. It does not sell or share personal information. Apple platform services may operate when you use system features such as iCloud, Files, or the App Store.</p>
+      </section>
+
+      <section id="retention-and-deletion">
+        <h2>Retention and deletion</h2>
+        <p>Your documents remain until you delete them. Deleting a document from the PaperIndex library removes its library record and stored pages from the app database, including synced records where applicable. Files exports are intentionally left in place so an app-library deletion does not destroy your independent copy; delete those separately in Files.</p>
+        <p>Deleting PaperIndex removes its local app container. Copies previously stored in iCloud Drive or synced through iCloud may remain in your Apple Account until you remove them using Apple's tools.</p>
+      </section>
+
+      <section>
+        <h2>Children's privacy</h2>
+        <p>PaperIndex does not knowingly collect personal information from anyone, including children, because it has no developer-operated collection service.</p>
+      </section>
+
+      <section>
+        <h2>Policy changes</h2>
+        <p>If PaperIndex's data practices change, this page will be updated with a new effective date. Material changes will be described in the repository or app release information.</p>
+      </section>
+
+      <section>
+        <h2>Contact</h2>
+        <p>For privacy questions, <a href="https://github.com/tmoreton/PaperIndex/issues">open an issue in the PaperIndex repository</a>. Do not include scans, recognized text, account numbers, health information, or other sensitive content in a public issue.</p>
+      </section>
+    </article>
+  </main>
+  <footer>
+    <div class="footer-row shell">
+      <span>PaperIndex · Private by design.</span>
+      <span class="footer-links"><a href="../">Home</a><a href="../terms/">Terms</a><a href="https://github.com/tmoreton/PaperIndex">GitHub</a></span>
+    </div>
+  </footer>
+</body>
+</html>
