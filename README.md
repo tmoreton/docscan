@@ -68,22 +68,22 @@ PaperIndex contains no application networking layer. Apple system frameworks may
 
 ## Build
 
-Open `DocScan.xcodeproj` in Xcode and run the `DocScan` scheme, or build from Terminal:
+Open `PaperIndex.xcodeproj` in Xcode and run the `PaperIndex` scheme, or build from Terminal:
 
 ```sh
 xcodebuild \
-  -project DocScan.xcodeproj \
-  -scheme DocScan \
+  -project PaperIndex.xcodeproj \
+  -scheme PaperIndex \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   build
 ```
 
-The Xcode project and internal target still use the original `DocScan` identifier to preserve the shipping app's bundle and iCloud container identity. The customer-facing product name is PaperIndex.
+The Xcode project, target, product, and source use the PaperIndex name. The original bundle, iCloud container, and SwiftData store identifiers remain unchanged so updates keep the same App Store identity and existing user data.
 
 ## Project structure
 
 ```text
-DocScan/
+PaperIndex/
 ├── Models/       SwiftData document and page models
 ├── Services/     OCR, metadata, search, scan processing, and Files export
 ├── Views/        SwiftUI archive, detail, scanner, and storage views
@@ -101,4 +101,3 @@ Before submitting a change, build the app for an iPhone simulator and an iPad si
 ## License
 
 An open-source license has not yet been selected. Until a `LICENSE` file is added, standard copyright applies even though the repository is public. Choose an OSI-approved license before distributing modified versions.
-

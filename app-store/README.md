@@ -35,9 +35,8 @@ Debug builds accept fictional preview data arguments that are excluded from Rele
 ```sh
 scripts/capture_app_store_screenshots.sh \
   <simulator-udid> \
-  <path-to-DocScan.app> \
+  <path-to-PaperIndex.app> \
   .build/app-store-source/<device-name>
 ```
 
 The source captures are intentionally written to the ignored `.build/` directory. Convert final captures to JPEG before upload so they contain no alpha channel.
-

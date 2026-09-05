@@ -1,6 +1,6 @@
 //
 //  DocumentRow.swift
-//  DocScan
+//  PaperIndex
 //
 
 import SwiftUI
@@ -54,12 +54,12 @@ struct DocumentRow: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(DocScanStyle.surface)
-                .shadow(color: DocScanStyle.shadow, radius: 12, x: 0, y: 6)
+                .fill(PaperIndexStyle.surface)
+                .shadow(color: PaperIndexStyle.shadow, radius: 12, x: 0, y: 6)
         )
         .overlay {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(DocScanStyle.border, lineWidth: 1)
+                .stroke(PaperIndexStyle.border, lineWidth: 1)
         }
     }
 
@@ -67,12 +67,12 @@ struct DocumentRow: View {
         VStack(alignment: .leading, spacing: 7) {
             Text(document.title)
                 .font(.headline.weight(.semibold))
-                .foregroundStyle(DocScanStyle.ink)
+                .foregroundStyle(PaperIndexStyle.ink)
                 .lineLimit(titleLineLimit)
 
             Text(metadata)
                 .font(.caption)
-                .foregroundStyle(DocScanStyle.secondaryInk)
+                .foregroundStyle(PaperIndexStyle.secondaryInk)
                 .lineLimit(2)
         }
     }
@@ -80,33 +80,37 @@ struct DocumentRow: View {
     private var categoryBadge: some View {
         Text(document.category)
             .font(.caption2.weight(.semibold))
-            .foregroundStyle(DocScanStyle.secondaryInk)
+            .foregroundStyle(PaperIndexStyle.secondaryInk)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .frame(minHeight: 24)
-            .background(DocScanStyle.mutedSurface, in: Capsule())
+            .background(PaperIndexStyle.mutedSurface, in: Capsule())
     }
 
     private var fileStatus: some View {
-        Label(
-            document.filesExportedAt == nil ? "Preparing Files copy" : "Saved in Files",
-            systemImage: document.filesExportedAt == nil ? "clock" : "checkmark.circle.fill"
-        )
+        Group {
+            if document.filesExportedAt == nil {
+                Label("Preparing Files copy", systemImage: "clock")
+            } else {
+                Image(systemName: "checkmark.circle.fill")
+                    .accessibilityLabel("Saved in Files")
+            }
+        }
         .font(.caption2.weight(.medium))
-        .foregroundStyle(document.filesExportedAt == nil ? DocScanStyle.tertiaryInk : DocScanStyle.blue)
+        .foregroundStyle(document.filesExportedAt == nil ? PaperIndexStyle.tertiaryInk : PaperIndexStyle.blue)
     }
 
     private var searchSnippet: some View {
         Text(snippet)
             .font(.subheadline)
-            .foregroundStyle(DocScanStyle.secondaryInk)
+            .foregroundStyle(PaperIndexStyle.secondaryInk)
             .lineLimit(dynamicTypeSize.isAccessibilitySize ? 4 : 2)
     }
 
     private var thumbnail: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(DocScanStyle.mutedSurface)
+                .fill(PaperIndexStyle.mutedSurface)
 
             if let data = document.sortedPages.first?.imageData,
                let image = UIImage(data: data) {
@@ -121,13 +125,13 @@ struct DocumentRow: View {
             } else {
                 Image(systemName: "doc.viewfinder")
                     .font(.title2)
-                    .foregroundStyle(DocScanStyle.secondaryInk)
+                    .foregroundStyle(PaperIndexStyle.secondaryInk)
             }
         }
         .frame(width: 60, height: 78)
         .overlay {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(DocScanStyle.border, lineWidth: 1)
+                .stroke(PaperIndexStyle.border, lineWidth: 1)
         }
     }
 

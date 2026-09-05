@@ -1,6 +1,6 @@
 //
 //  DocumentCategorizer.swift
-//  DocScan
+//  PaperIndex
 //
 
 import Foundation

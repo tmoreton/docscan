@@ -1,6 +1,6 @@
 //
 //  ScannedDocument.swift
-//  DocScan
+//  PaperIndex
 //
 
 import Foundation

@@ -1,6 +1,6 @@
 //
 //  ScanProcessor.swift
-//  DocScan
+//  PaperIndex
 //
 
 import UIKit

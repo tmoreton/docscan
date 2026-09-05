@@ -1,6 +1,6 @@
 //
 //  DocumentFileStore.swift
-//  DocScan
+//  PaperIndex
 //
 
 import Foundation

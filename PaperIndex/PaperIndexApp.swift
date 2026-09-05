@@ -1,6 +1,6 @@
 //
-//  DocScanApp.swift
-//  DocScan
+//  PaperIndexApp.swift
+//  PaperIndex
 //
 //  Created by Homelab on 8/21/26.
 //
@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct DocScanApp: App {
+struct PaperIndexApp: App {
     private let modelContainer: ModelContainer = {
         let schema = Schema([
             ScannedDocument.self,
@@ -25,7 +25,7 @@ struct DocScanApp: App {
         do {
             return try ModelContainer(for: schema, configurations: [configuration])
         } catch {
-            fatalError("Unable to create DocScan model container: \(error)")
+            fatalError("Unable to create PaperIndex model container: \(error)")
         }
     }()
 

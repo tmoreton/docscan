@@ -1,6 +1,6 @@
 //
 //  DocumentMetadataService.swift
-//  DocScan
+//  PaperIndex
 //
 
 import Foundation

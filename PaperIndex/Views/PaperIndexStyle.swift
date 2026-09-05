@@ -1,11 +1,11 @@
 //
-//  DocScanStyle.swift
-//  DocScan
+//  PaperIndexStyle.swift
+//  PaperIndex
 //
 
 import SwiftUI
 
-enum DocScanStyle {
+enum PaperIndexStyle {
     static let background = Color(red: 0.957, green: 0.961, blue: 0.969)
     static let surface = Color.white
     static let mutedSurface = Color(red: 0.910, green: 0.922, blue: 0.941)

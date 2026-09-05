@@ -1,6 +1,6 @@
 //
 //  OCRService.swift
-//  DocScan
+//  PaperIndex
 //
 
 import ImageIO

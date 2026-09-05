@@ -65,9 +65,8 @@ The common lesson is not to add more color. Each product creates differentiation
 - Replaced the gradient and category rainbow with a monochrome-plus-blue palette.
 - Added page-count-aware saving feedback that explains text recognition and Files creation.
 - Added an explicit `Saved and searchable` completion card with the Files destination.
-- Added `Saved in Files` status to every archive row.
-- Put storage status first on document detail, including separate PaperIndex and Files rows.
-- Added a labeled `View in Files` button and a clear description of the saved page images and OCR text.
+- Added a compact checkmark to completed archive rows without repeating the saved status in text.
+- Put a single, prominent `View in Files` action near the top of document detail.
 - Moved copy, Files, and delete utilities into a conventional overflow menu; delete no longer competes visually with the primary action.
 
 ## Follow-up opportunities

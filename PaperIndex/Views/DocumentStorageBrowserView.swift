@@ -1,6 +1,6 @@
 //
 //  DocumentStorageBrowserView.swift
-//  DocScan
+//  PaperIndex
 //
 
 import SwiftUI

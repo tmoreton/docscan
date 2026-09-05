@@ -1,6 +1,6 @@
 //
 //  DocumentDetailView.swift
-//  DocScan
+//  PaperIndex
 //
 
 import SwiftData
@@ -28,7 +28,7 @@ struct DocumentDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 metadata
-                storageCard
+                filesButton
                 pageImages
                 recognizedText
             }
@@ -36,11 +36,11 @@ struct DocumentDetailView: View {
             .padding(.top, 12)
             .padding(.bottom, 32)
         }
-        .background(DocScanStyle.background)
+        .background(PaperIndexStyle.background)
         .navigationTitle(document.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
-        .toolbarBackground(DocScanStyle.background, for: .navigationBar)
+        .toolbarBackground(PaperIndexStyle.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -60,7 +60,7 @@ struct DocumentDetailView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 16)
                     .frame(height: 42)
-                    .background(DocScanStyle.darkSurface, in: Capsule())
+                    .background(PaperIndexStyle.darkSurface, in: Capsule())
                     .shadow(color: Color.black.opacity(0.16), radius: 16, x: 0, y: 8)
                     .padding(.top, 12)
                     .transition(.move(edge: .top).combined(with: .opacity))
@@ -119,13 +119,13 @@ struct DocumentDetailView: View {
                         .contrast(1.2)
                         .brightness(0.03)
                         .padding(8)
-                        .background(DocScanStyle.surface)
+                        .background(PaperIndexStyle.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         .overlay {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .stroke(DocScanStyle.border, lineWidth: 1)
+                                .stroke(PaperIndexStyle.border, lineWidth: 1)
                         }
-                        .shadow(color: DocScanStyle.shadow, radius: 12, x: 0, y: 6)
+                        .shadow(color: PaperIndexStyle.shadow, radius: 12, x: 0, y: 6)
                 }
             }
         }
@@ -153,7 +153,7 @@ struct DocumentDetailView: View {
             if !document.cleanedSummary.isEmpty {
                 Text(document.cleanedSummary)
                     .font(.body)
-                    .foregroundStyle(DocScanStyle.ink)
+                    .foregroundStyle(PaperIndexStyle.ink)
                     .lineSpacing(3)
                     .textSelection(.enabled)
             }
@@ -163,111 +163,40 @@ struct DocumentDetailView: View {
     private var categoryBadge: some View {
         Text(document.category)
             .font(.caption.weight(.semibold))
-            .foregroundStyle(DocScanStyle.secondaryInk)
+            .foregroundStyle(PaperIndexStyle.secondaryInk)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(DocScanStyle.mutedSurface, in: Capsule())
+            .background(PaperIndexStyle.mutedSurface, in: Capsule())
             .overlay {
                 Capsule()
-                    .stroke(DocScanStyle.border, lineWidth: 1)
+                    .stroke(PaperIndexStyle.border, lineWidth: 1)
             }
     }
 
     private var createdDate: some View {
         Text(document.createdAt.formatted(date: .abbreviated, time: .shortened))
-            .foregroundStyle(DocScanStyle.secondaryInk)
+            .foregroundStyle(PaperIndexStyle.secondaryInk)
     }
 
-    private var storageCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("SAVED")
-                .font(.caption2.weight(.bold))
-                .tracking(0.8)
-                .foregroundStyle(DocScanStyle.tertiaryInk)
-
-            storageRow(
-                systemImage: "checkmark",
-                title: "PaperIndex library",
-                detail: "Searchable in this app"
-            )
-
-            Divider()
-
-            storageRow(
-                systemImage: document.filesExportedAt == nil ? "arrow.clockwise" : "checkmark",
-                title: "Files copy",
-                detail: filesStatusText
-            )
-
-            Text("Each page is saved as an image with the recognized text in the same folder.")
-                .font(.caption)
-                .foregroundStyle(DocScanStyle.secondaryInk)
-                .lineSpacing(2)
-
-            Button(action: openFiles) {
-                HStack(spacing: 8) {
-                    if isExportingFiles {
-                        ProgressView()
-                            .tint(.white)
-                    } else {
-                        Image(systemName: "folder")
-                    }
-
-                    Text(document.filesExportedAt == nil ? "Create Files copy" : "View in Files")
+    private var filesButton: some View {
+        Button(action: openFiles) {
+            HStack(spacing: 8) {
+                if isExportingFiles {
+                    ProgressView()
+                        .tint(.white)
+                } else {
+                    Image(systemName: "folder")
                 }
-                .font(.headline.weight(.semibold))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity, minHeight: 52)
-                .background(DocScanStyle.blue, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+                Text("View in Files")
             }
-            .buttonStyle(.plain)
-            .disabled(isExportingFiles)
+            .font(.headline.weight(.semibold))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity, minHeight: 52)
+            .background(PaperIndexStyle.blue, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
-        .padding(16)
-        .background(DocScanStyle.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(DocScanStyle.border, lineWidth: 1)
-        }
-        .shadow(color: DocScanStyle.shadow, radius: 14, x: 0, y: 7)
-    }
-
-    private var filesStatusText: String {
-        if isExportingFiles {
-            return "Creating Files copy…"
-        }
-
-        guard document.filesExportedAt != nil else {
-            return "Not created yet"
-        }
-
-        if storageLocations?.iCloud != nil {
-            return "iCloud Drive + \(storageLocations?.local.title ?? "On this device")"
-        }
-
-        return storageLocations?.local.title ?? "On this device"
-    }
-
-    private func storageRow(systemImage: String, title: String, detail: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: systemImage)
-                .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(.white)
-                .frame(width: 28, height: 28)
-                .background(DocScanStyle.blue, in: Circle())
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(DocScanStyle.ink)
-
-                Text(detail)
-                    .font(.caption)
-                    .foregroundStyle(DocScanStyle.secondaryInk)
-            }
-
-            Spacer(minLength: 0)
-        }
+        .buttonStyle(.plain)
+        .disabled(isExportingFiles)
     }
 
     private func sectionHeader(title: String, detail: String) -> some View {
@@ -290,13 +219,13 @@ struct DocumentDetailView: View {
     private func sectionTitle(_ title: String) -> some View {
         Text(title)
             .font(.headline)
-            .foregroundStyle(DocScanStyle.ink)
+            .foregroundStyle(PaperIndexStyle.ink)
     }
 
     private func sectionDetail(_ detail: String) -> some View {
         Text(detail)
             .font(.caption.weight(.medium))
-            .foregroundStyle(DocScanStyle.tertiaryInk)
+            .foregroundStyle(PaperIndexStyle.tertiaryInk)
     }
 
     private var recognizedText: some View {
@@ -319,18 +248,18 @@ struct DocumentDetailView: View {
             Text(displayRecognizedText.isEmpty ? "No text recognized." : displayRecognizedText)
                 .font(.body)
                 .lineSpacing(6)
-                .foregroundStyle(DocScanStyle.ink)
+                .foregroundStyle(PaperIndexStyle.ink)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(14)
                 .background(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(DocScanStyle.surface)
-                        .shadow(color: DocScanStyle.shadow, radius: 12, x: 0, y: 6)
+                        .fill(PaperIndexStyle.surface)
+                        .shadow(color: PaperIndexStyle.shadow, radius: 12, x: 0, y: 6)
                 )
                 .overlay {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(DocScanStyle.border, lineWidth: 1)
+                        .stroke(PaperIndexStyle.border, lineWidth: 1)
                 }
         }
     }
@@ -342,15 +271,15 @@ struct DocumentDetailView: View {
                 systemImage: hasCopiedText ? "checkmark" : "doc.on.doc"
             )
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(displayRecognizedText.isEmpty ? DocScanStyle.tertiaryInk : DocScanStyle.blue)
+            .foregroundStyle(displayRecognizedText.isEmpty ? PaperIndexStyle.tertiaryInk : PaperIndexStyle.blue)
             .padding(.horizontal, 13)
             .frame(minHeight: 42)
-            .background(DocScanStyle.surface, in: Capsule())
+            .background(PaperIndexStyle.surface, in: Capsule())
             .overlay {
                 Capsule()
-                    .stroke(DocScanStyle.border, lineWidth: 1)
+                    .stroke(PaperIndexStyle.border, lineWidth: 1)
             }
-            .shadow(color: DocScanStyle.shadow.opacity(0.45), radius: 10, x: 0, y: 5)
+            .shadow(color: PaperIndexStyle.shadow.opacity(0.45), radius: 10, x: 0, y: 5)
         }
         .buttonStyle(.plain)
         .disabled(displayRecognizedText.isEmpty)
@@ -485,7 +414,7 @@ private struct DetailMoreMenu: View {
         } label: {
             Image(systemName: "ellipsis")
                 .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(DocScanStyle.ink)
+                .foregroundStyle(PaperIndexStyle.ink)
                 .frame(width: 42, height: 42)
         }
         .accessibilityLabel("Document actions")
