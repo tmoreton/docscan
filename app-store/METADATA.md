@@ -74,7 +74,6 @@ Apple states that data processed only on-device is not “collected,” and deve
 - [x] Privacy manifest declaring no collection/tracking and the app-local UserDefaults reason
 - [x] Encryption declaration included in the app Info.plist
 - [ ] Enter the correct copyright owner in App Store Connect
-- [ ] Select build 1.1 (3) for the App Store version
+- [ ] Select build 1.1 (4) for the App Store version after Apple finishes processing it
 - [ ] Complete age rating, content rights, pricing/availability, and export-compliance questions in App Store Connect
 - [ ] Choose and add the project's open-source license
-
