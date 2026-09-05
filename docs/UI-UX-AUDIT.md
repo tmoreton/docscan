@@ -1,4 +1,4 @@
-# DocScan UI/UX audit
+# PaperIndex UI/UX audit
 
 Audited and rebuilt September 4, 2026.
 
@@ -9,11 +9,11 @@ The core flow is intentionally short:
 1. Open the searchable document archive.
 2. Start a scan from one primary blue action.
 3. Capture pages in Apple's document camera.
-4. Wait while DocScan recognizes text and creates Files copies.
+4. Wait while PaperIndex recognizes text and creates Files copies.
 5. See an explicit saved confirmation.
 6. Open a document to review its pages, recognized text, and Files status.
 
-The capture experience is provided by VisionKit. The DocScan-specific experience begins in the archive and resumes when the system scanner closes.
+The capture experience is provided by VisionKit. The PaperIndex-specific experience begins in the archive and resumes when the system scanner closes.
 
 ## Findings before the rebuild
 
@@ -66,7 +66,7 @@ The common lesson is not to add more color. Each product creates differentiation
 - Added page-count-aware saving feedback that explains text recognition and Files creation.
 - Added an explicit `Saved and searchable` completion card with the Files destination.
 - Added `Saved in Files` status to every archive row.
-- Put storage status first on document detail, including separate DocScan and Files rows.
+- Put storage status first on document detail, including separate PaperIndex and Files rows.
 - Added a labeled `View in Files` button and a clear description of the saved page images and OCR text.
 - Moved copy, Files, and delete utilities into a conventional overflow menu; delete no longer competes visually with the primary action.
 

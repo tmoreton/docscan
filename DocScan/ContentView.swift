@@ -130,7 +130,7 @@ struct ContentView: View {
                 )
                 .ignoresSafeArea()
             }
-            .alert("DocScan", isPresented: errorAlertBinding) {
+            .alert("PaperIndex", isPresented: errorAlertBinding) {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
@@ -309,7 +309,7 @@ struct ContentView: View {
             )
         } catch {
             modelContext.rollback()
-            errorMessage = "The scan was saved, but DocScan could not write the Files copies: \(error.localizedDescription)"
+            errorMessage = "The scan was saved, but PaperIndex could not write the Files copies: \(error.localizedDescription)"
         }
     }
 

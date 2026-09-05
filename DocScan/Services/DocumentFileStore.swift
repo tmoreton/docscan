@@ -71,7 +71,7 @@ struct DocumentFileLocations: Sendable {
 }
 
 enum DocumentFileStore {
-    static let archiveFolderName = "DocScan Archive"
+    static let archiveFolderName = "PaperIndex Archive"
     static let iCloudContainerIdentifier = "iCloud.reactnativenerd.DocScan"
 
     static func ensureFolderName(for document: ScannedDocument) -> String {
@@ -123,7 +123,7 @@ enum DocumentFileStore {
         let local = DocumentFileLocation(
             kind: .local,
             url: localArchiveURL.appendingPathComponent(folderName, isDirectory: true),
-            displayPath: "Files > \(localFilesTitle) > DocScan > \(archiveFolderName) > \(folderName)",
+            displayPath: "Files > \(localFilesTitle) > PaperIndex > \(archiveFolderName) > \(folderName)",
             persistenceNote: "Visible while the app is installed. iOS removes this copy if the app is deleted."
         )
 
@@ -131,7 +131,7 @@ enum DocumentFileStore {
             DocumentFileLocation(
                 kind: .iCloud,
                 url: rootURL.appendingPathComponent(folderName, isDirectory: true),
-                displayPath: "Files > iCloud Drive > DocScan > \(archiveFolderName) > \(folderName)",
+                displayPath: "Files > iCloud Drive > PaperIndex > \(archiveFolderName) > \(folderName)",
                 persistenceNote: "This is the durable Files copy when iCloud Drive is enabled."
             )
         }
@@ -197,7 +197,7 @@ enum DocumentFileStore {
         Document ID: \(package.id.uuidString)
 
         This folder contains the exported scan image files and the recognized OCR text.
-        The app's internal SwiftData and CloudKit record is separate from these user-visible files.
+        PaperIndex's internal SwiftData and CloudKit record is separate from these user-visible files.
         """
     }
 

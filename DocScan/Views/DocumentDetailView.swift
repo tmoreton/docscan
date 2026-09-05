@@ -74,7 +74,7 @@ struct DocumentDetailView: View {
         .task {
             exportFilesIfNeeded()
         }
-        .confirmationDialog("Delete from DocScan?", isPresented: $isDeleteConfirmationPresented, titleVisibility: .visible) {
+        .confirmationDialog("Delete from PaperIndex?", isPresented: $isDeleteConfirmationPresented, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
                 deleteDocument()
             }
@@ -83,7 +83,7 @@ struct DocumentDetailView: View {
         } message: {
             Text("Exported copies in Files are left in place.")
         }
-        .alert("DocScan", isPresented: errorAlertBinding) {
+        .alert("PaperIndex", isPresented: errorAlertBinding) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(errorMessage ?? "")
@@ -186,7 +186,7 @@ struct DocumentDetailView: View {
 
             storageRow(
                 systemImage: "checkmark",
-                title: "DocScan library",
+                title: "PaperIndex library",
                 detail: "Searchable in this app"
             )
 
@@ -393,7 +393,7 @@ struct DocumentDetailView: View {
         } catch {
             modelContext.rollback()
             refreshStorageLocations()
-            errorMessage = "DocScan could not write the Files copies: \(error.localizedDescription)"
+            errorMessage = "PaperIndex could not write the Files copies: \(error.localizedDescription)"
         }
     }
 
@@ -414,7 +414,7 @@ struct DocumentDetailView: View {
         }
 
         guard let location = storageLocations?.iCloud ?? storageLocations?.local else {
-            errorMessage = "DocScan could not find the exported Files folder."
+            errorMessage = "PaperIndex could not find the exported Files folder."
             return
         }
 
